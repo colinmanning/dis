@@ -21,7 +21,6 @@ import javax.xml.parsers.FactoryConfigurationError;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 
-@SuppressWarnings("CallToThreadDumpStack")
 public class AdvancedServer extends CoreServer {
 
     private final static Logger logger = Logger.getLogger(AdvancedServer.class);
