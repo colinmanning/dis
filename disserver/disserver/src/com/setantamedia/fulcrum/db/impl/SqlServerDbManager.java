@@ -407,7 +407,7 @@ public class SqlServerDbManager implements DbManager {
             DbRecord record = new DbRecord();
             record.setConnection(connectionName);
             try {
-                // What if a join and there ate 2 ID fields - will we get the forst or what ?
+                // What if a join and there ate 2 ID fields - will we get the first or what ?
                 record.setId(String.valueOf(results.getInt("id")));
             } catch (SQLException se) {
                 // some tables may not have id field - e.g. many_to_many tables - just ignore
@@ -434,10 +434,18 @@ public class SqlServerDbManager implements DbManager {
                         break;
                     case FieldTypeConstants.TypeDate:
                         DateTime dateTime = new DateTime();
-                        java.sql.Timestamp ts = results.getTimestamp(fieldName);
-                        if (ts != null) {
-                            dateTime.setValue(ts.getTime());
-                        }
+                        //java.sql.Timestamp ts = results.getTimestamp(fieldName);
+                        java.sql.Time time = results.getTime(fieldName);
+                        if (time != null) {
+                            //dateTime.setValue(ts.getTime());
+                            dateTime.setValue(time.getTime());
+                        } else {
+                        	// try for a Date then
+                            java.sql.Date date = results.getDate(fieldName);
+                            if (date != null) {
+                                dateTime.setValue(date.getTime());                           	
+                            }
+                       }
                         fieldValue.setDateTimeValue(dateTime);
                         break;
                     case FieldTypeConstants.TypeClob:
