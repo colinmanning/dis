@@ -49,5 +49,7 @@
 	<classpathentry kind="var" path="DIS_JARS/slf4j-log4j12-1.7.1.jar"/>
 	<classpathentry kind="var" path="DIS_JARS/sqljdbc4.jar"/>
 	<classpathentry kind="var" path="DIS_JARS/xalan-2.7.0.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/damalfrescoapi"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/damapicumulus"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
