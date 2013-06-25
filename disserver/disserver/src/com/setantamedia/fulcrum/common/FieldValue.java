@@ -68,7 +68,13 @@ public class FieldValue {
                 result = doubleValue;
                 break;
             case FieldTypeConstants.TypeDate:
-                result = dateTimeValue;
+                result = dateTimeValue.getValue();
+                break;
+            case FieldTypeConstants.TypeDateTime:
+                result = dateTimeValue.getValue();
+                break;
+            case FieldTypeConstants.TypeTimestamp:
+                result = dateTimeValue.getValue();
                 break;
             case FieldTypeConstants.TypeClob:
                 result = clobValue;

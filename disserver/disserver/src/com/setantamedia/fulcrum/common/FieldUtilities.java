@@ -123,6 +123,16 @@ public class FieldUtilities {
 			v.setValue(new Long(value));
 			result.setDateTimeValue(v);
 			break;
+		case FieldTypeConstants.TypeDateTime:
+			v = new DateTime();
+			v.setValue(new Long(value));
+			result.setDateTimeValue(v);
+			break;
+		case FieldTypeConstants.TypeTimestamp:
+			v = new DateTime();
+			v.setValue(new Long(value));
+			result.setDateTimeValue(v);
+			break;
 		case FieldTypeConstants.TypeDouble:
 			result.setDoubleValue(new Double(value));
 			break;

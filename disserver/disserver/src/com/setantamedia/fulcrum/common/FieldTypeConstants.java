@@ -15,6 +15,8 @@ public class FieldTypeConstants {
    public static final int TypeLong = 9;
    public static final int TypeTable = 10;
    public static final int TypeClob = 101;
+   public static final int TypeDateTime = 102;
+   public static final int TypeTimestamp = 103;
    public static final int VALUE_ASSETREFERENCE = 1;
    public static final int VALUE_RESOLUTION = 2;
    public static final int VALUE_LENGTH_IN_INCH = 3;
