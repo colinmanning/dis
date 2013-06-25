@@ -243,6 +243,7 @@ public class CumulusManager extends DamManager {
         return result;
     }
 
+    @Override
     public String uploadFile(Connection connection, User user, Folder folder, Path file, String fileName, String uploadProfile, HashMap<String, String> fields) throws DamManagerNotImplementedException {
         String damId = uploadFile(connection, user, file, fileName, uploadProfile, fields);
         if (damId != null) {
