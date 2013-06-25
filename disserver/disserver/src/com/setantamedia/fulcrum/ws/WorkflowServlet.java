@@ -10,9 +10,6 @@ import com.setantamedia.fulcrum.common.Database;
 import com.setantamedia.fulcrum.db.DbManager;
 import com.setantamedia.fulcrum.db.DbSessionData;
 import com.setantamedia.fulcrum.workflow.WorkflowManager;
-import static com.setantamedia.fulcrum.ws.BaseServlet.PARAMETER_PASSWORD;
-import static com.setantamedia.fulcrum.ws.BaseServlet.PARAMETER_USERNAME;
-import static com.setantamedia.fulcrum.ws.BaseServlet.UTF_8;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Enumeration;
@@ -30,12 +27,11 @@ import org.json.JSONObject;
  *
  * @author Colin Manning
  */
+@SuppressWarnings("serial")
 public class WorkflowServlet extends BaseServlet {
 
     private final static Logger logger = Logger.getLogger(WorkflowServlet.class);
     public final static String SERVICE_NAME = "wf";
-    public final static String DIS_DB_NAME = "dis-db";
-    public final static String DIS_DB_CONNECTION_NAME = "main";
     private AdvancedServer server = null;
     private HashMap<String, Database> databases = null;
     private DbManager disDbManager = null;
@@ -137,7 +133,7 @@ public class WorkflowServlet extends BaseServlet {
                             }
                             String actionName = request.getParameter(PARAMETER_NAME);
                             HashMap<String, String> params = new HashMap<>();
-                            Enumeration paramNames = request.getParameterNames();
+                            Enumeration<String> paramNames = request.getParameterNames();
                             while (paramNames.hasMoreElements()) {
                                 String paramName = (String) paramNames.nextElement();
                                 if (PARAMETER_NAME.equals(paramName)
