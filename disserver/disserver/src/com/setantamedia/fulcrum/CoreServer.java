@@ -23,7 +23,6 @@ import org.apache.log4j.xml.DOMConfigurator;
  *
  * @author Colin Manning
  */
-@SuppressWarnings("CallToThreadDumpStack")
 public class CoreServer {
 
    private final static Logger logger = Logger.getLogger(CoreServer.class);

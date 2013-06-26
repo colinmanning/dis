@@ -1,5 +1,6 @@
 package com.setantamedia.dis.action;
 
+import com.ibm.icu.text.SimpleDateFormat;
 import com.setantamedia.fulcrum.DamManager;
 import com.setantamedia.fulcrum.DamManagerNotImplementedException;
 import com.setantamedia.fulcrum.actions.ActionProcessor;
@@ -11,6 +12,7 @@ import com.setantamedia.fulcrum.ws.BaseServlet;
 import com.setantamedia.fulcrum.ws.types.QueryResult;
 import com.setantamedia.fulcrum.ws.types.Record;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,8 +39,12 @@ public class DbDamSyncAction extends ActionProcessor {
     public final static String PARAM_DAM_VIEW = "damView";
     public final static String PARAM_BIT_DB_FIELD = "dbField";
     public final static String PARAM_BIT_REPLACE = "replace";
+    public final static String PARAM_BIT_STRING_TO_DATETIME = "stringToDateTime";
     public final static String PARAM_URL_DAM = "dam";
     public final static String PARAM_URL_DB = "db";
+    public final static String PARAM_DATE_TIME_FORMAT = "dateTimeFormat";
+    
+    
     private String dbName = null;
     private String dbConnectionName = null;
     private String damConnectionName = null;
@@ -53,6 +59,7 @@ public class DbDamSyncAction extends ActionProcessor {
     private Query dbNamedQuery = null;
     private String damViewName = null;
     private String dbViewName = null;
+    private String dateTimeFormatString = null;
     private ArrayList<FieldMap> fieldMaps = new ArrayList<>();
 
     private class FieldMap {
@@ -60,6 +67,8 @@ public class DbDamSyncAction extends ActionProcessor {
         private boolean append = false;
         private String dbField = null;
         private String damField = null;
+        private boolean stringToDateTime = false;
+        private SimpleDateFormat dateTimeFormat = null;
 
         public FieldMap() {
         }
@@ -72,7 +81,23 @@ public class DbDamSyncAction extends ActionProcessor {
             this.append = append;
         }
 
-        public String getDbField() {
+        public void setStringToDateTime(boolean stringToDateTime) {
+            this.stringToDateTime = stringToDateTime;
+        }
+
+        public boolean isStringToDateTime() {
+            return stringToDateTime;
+        }
+
+        public void setDateTimeFormat(SimpleDateFormat dateTimeFormat) {
+            this.dateTimeFormat = dateTimeFormat;
+        }
+
+        public SimpleDateFormat getDateTimeFormat() {
+            return dateTimeFormat;
+        }
+
+         public String getDbField() {
             return dbField;
         }
 
@@ -105,6 +130,7 @@ public class DbDamSyncAction extends ActionProcessor {
         damKeyField = params.get(PARAM_DAM_KEY_FIELD);
         damViewName = params.get(PARAM_DAM_VIEW);
         dbViewName = params.get(PARAM_DB_VIEW);
+        dateTimeFormatString = params.get(PARAM_DATE_TIME_FORMAT);
 
         dbManager = mainServer.getDatabase(dbName).getManager();
         damManager = dam.manager;
@@ -121,6 +147,12 @@ public class DbDamSyncAction extends ActionProcessor {
                 FieldMap fieldMap = new FieldMap();
                 fieldMap.setDbField(dbBits[1]);
                 fieldMap.setDamField(damBits[1]);
+                if (damBits.length > 2) {
+                	if (dateTimeFormatString != null && PARAM_BIT_STRING_TO_DATETIME.equals(damBits[2])) {
+                		fieldMap.setStringToDateTime(true);
+                		fieldMap.setDateTimeFormat(new SimpleDateFormat(dateTimeFormatString));
+                	}
+                }
                 if (damBits.length > 2) {
                     fieldMap.setAppend(PARAM_BIT_APPEND.equals(damBits[2]));
                 }
@@ -218,6 +250,10 @@ public class DbDamSyncAction extends ActionProcessor {
                             String exstingV = damRecord.getFieldValue(fieldMap.getDamField()).toString();
                             v = exstingV + " " + v;
                         }
+                        if (fieldMap.isStringToDateTime()) {
+                        	// converting from a database String, to a DAM date field, with formatter specified, or it will be broken
+                        	v = (Long.valueOf(fieldMap.getDateTimeFormat().parse(v).getTime())).toString();
+                        }
                         damFields.put(fieldMap.getDamField(), v);
                     }
                     if (!damManager.updateAssetData(damConnection, damRecord.getId(), null, damFields)) {
@@ -227,7 +263,7 @@ public class DbDamSyncAction extends ActionProcessor {
                 }
             }
             result.put("status", "OK");
-        } catch (JSONException | DamManagerNotImplementedException | SQLException e) {
+        } catch (JSONException | DamManagerNotImplementedException | ParseException | SQLException e) {
             logger.info("Problem with action: " + e.getMessage());
             try {
                 result.put("status", "FAILED");

@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fulcrumConfig>
+    <tmpFolder>/opt/dis/tmp</tmpFolder>
+    <previewCacheFolder>C:\dis\data\preview-cache</previewCacheFolder>
+    <useDam>Cumulus</useDam>
+    <serverPrefix></serverPrefix>
+    <dams>
+        <dam name="Cumulus">
+            <baseUrl>http://localhost:8080/disweb</baseUrl>
+            <managerClass>damcumulusapi.CumulusManager</managerClass>
+            <connections>
+                <connection name="text-cover">
+                    <server>localhost</server>
+                    <user>cumulus</user>
+                    <password>cumulus</password>
+                    <database>TextCover</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>-1</poolSize>
+                    <accessControl public="true" />
+                 </connection>
+                <connection name="text-cover-1">
+                    <server>localhost</server>
+                    <user>cumulus</user>
+                    <password>cumulus</password>
+                    <database>TextCover</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>-1</poolSize>
+               </connection>
+               <connection name="text-cover-2">
+                    <server>localhost</server>
+                    <user>cumulus</user>
+                    <password>cumulus</password>
+                    <database>TextCover</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>-1</poolSize>
+                    <accessControl public="true" />
+               </connection>
+                <connection name="nedbank">
+                    <server>localhost</server>
+                    <user>cumulus</user>
+                    <password>cumulus</password>
+                    <database>nedbank</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>0</poolSize>
+                </connection>
+                <connection name="absa">
+                    <server>dis-dev-laptop</server>
+                    <user>cumulus</user>
+                    <password>cumulus</password>
+                    <database>absa</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>0</poolSize>
+                </connection>
+            </connections>
+            <views>
+                <view name="sync-data" locale="default">
+                    <field name="Country Code" />
+                    <field name="Series or Imprint" />                               
+                    <field name="Format Group" />
+                    <field name="Title" />
+                    <field name="Author" />
+                    <field name="ISBN" />
+                    <field name="eISBN" />
+                    <field name="Page Count" />
+                    <field name="Word Count" />
+                    <field name="Onsale" />
+                    <preview>small</preview>
+                    <preview>medium</preview>
+                    <link>isbn</link>
+                </view>
+               <view name="isbn" locale="default">
+                    <field name="ISBN" />
+                    <field name="eISBN" />
+               </view>
+            </views>
+        </dam>
+    </dams>
+    <databases>
+        <database name="sqlserver">
+            <managerClass>com.setantamedia.fulcrum.db.impl.SqlServerDbManager</managerClass>
+            <connections>
+                <connection name="cumulus-test">
+                    <server>localhost</server>
+                    <user>sa</user>
+                    <password>otec-europe</password>
+                    <readonly>false</readonly>
+                    <database>jdbc:sqlserver://localhost:1433;databaseName=cumulus-test</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>0</poolSize>
+                </connection>
+            </connections>
+            <views>
+                <view name="pub" table="pub">
+                    <field name="ISBN" />
+                    <field name="Related_Digital_ISBN" />
+                    <field name="Country_Code" />
+                    <field name="Product_Line_Description" />
+                    <field name="HERS_format_group" />
+                    <field name="Stories" />
+                    <field name="Story_Author" />
+                    <field name="Title" />
+                    <field name="Author" />
+                    <field name="TEXT_SET" />
+                    <field name="Word_Count" />
+                    <field name="On_Sale" />
+                </view>
+            </views>
+        </database>
+        <!--
+        <database name="mysql">
+            <managerClass>com.setantamedia.fulcrum.db.impl.MySqlDbManager</managerClass>
+            <connections>
+                <connection name="cumulus-test">
+                    <server>localhost</server>
+                    <user>sa</user>
+                    <password>otec-europe</password>
+                    <readonly>false</readonly>
+                    <database>jdbc:mysql://localhost:3306/cumulus-test</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>0</poolSize>
+                </connection>
+            </connections>
+            <views>
+                <view name="pub" table="pub">
+                    <field name="ISBN" />
+                    <field name="Related_Digital_ISBN" />
+                    <field name="Country_Code" />
+                    <field name="Product_Line_Description" />
+                    <field name="HERS_format_group" />
+                    <field name="Stories" />
+                    <field name="Story_Author" />
+                    <field name="Title" />
+                    <field name="Author" />
+                    <field name="TEXT_SET" />
+                    <field name="Word_Count" />
+                    <field name="On_Sale" />
+                </view>
+            </views>
+        </database>
+        -->
+        <database name="dis-db">
+            <managerClass>com.setantamedia.fulcrum.db.impl.H2DbManager</managerClass>
+            <connections>
+                <connection name="main">
+                    <server>localhost</server>
+                    <user>sa</user>
+                    <password>otec-europe</password>
+                    <readonly>false</readonly>
+                    <database>jdbc:h2:tcp://localhost/C:/dev/dis/web/disweb/web/WEB-INF/db/dis-db</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>0</poolSize>
+                </connection>
+            </connections>
+            <views>
+                <view name="quiz" table="quiz">
+                    <field name="name" />
+                </view>
+                <view name="quiz_question" table="quiz_question">
+                    <field name="num" />
+                    <field name="text" />
+                    <field name="answer" />
+                    <field name="answerNum" />
+                    <field name="id_quiz" />
+                </view>
+                <view name="quiz_answer" table="quiz_answer">
+                    <field name="num" />
+                    <field name="id_quiz" />
+                    <field name="id_quiz_question" />
+                </view>
+                <view name="quiz_run" table="quiz_run">
+                    <field name="username" />
+                    <field name="score" />
+                    <field name="id_quiz" />
+                </view>
+            </views>
+        </database>
+    </databases>
+    <queries>
+        <query name="quiz-by-name">
+            <text>select * from quiz where name='${name}'</text>
+        </query>
+        <query name="quiz-questions">
+            <text>select * from quiz_question where id_quiz=${quizid}</text>
+        </query>
+        <query name="quiz-questions-by-name">
+            <text>select * from quiz_question where id_quiz=(select id from quiz where name='${name}')</text>
+        </query>
+        <query name="quiz-question-answers">
+            <text>select * from quiz_answer where id_quiz_question=${questionid})</text>
+        </query>
+        <query name="sql-get-isbn">
+            <text>select * from pub where isbn='${ISBN}'</text>
+        </query>
+        <query name="sql-get-related-isbn">
+            <text>select * from pub where Related_Digital_ISBN='${Related_Digital_ISBN}'</text>
+        </query>
+        <query name="cumulus-query-1">
+            <text>"Record Creation Date"  &gt;= $today-7d &amp;&amp; "Series or Imprint" !*</text>
+        </query>
+        <query name="cumulus-first-run">
+            <text>"Series or Imprint" !*</text>
+        </query>
+        
+    </queries>
+    <previews>
+        <preview name="small" format="png">
+            <maxsize>200</maxsize>
+        </preview>
+        <preview name="medium" format="png">
+            <maxsize>400</maxsize>
+        </preview>
+        <preview name="gallery" format="png">
+            <size>200</size>
+        </preview>
+    </previews>
+
+    <locations>
+        <location name="absa-office-docs">
+            <folder>C:\usr\local\office-docs</folder>
+            <accessCode>gary</accessCode>
+            <access>read-write</access>
+            <monitor initialScan="true" scanSubFolders="true">
+                <processClass>com.setantamedia.dis.workflow.locations.OfficeDocumentFileProcessor</processClass>
+                <params>
+                    <param name="categoryRoot" value="Office Documents" />
+                    <param name="damConnection" value="absa" />
+                    <param name="uploadProfile" value="Standard" />
+                </params>
+            </monitor>
+        </location>
+    </locations>
+    <actions>
+        <action name="db-dam-sync-isbn">
+            <processClass>com.setantamedia.dis.action.DbDamSyncAction</processClass>
+            <params>
+                <param name="dbName" value="sqlserver" />
+                <param name="dbQuery" value="sql-get-isbn" />
+                <param name="damQuery" value="cumulus-query-1" />
+                <param name="dbView" value="pub" />
+                <param name="damView" value="sync-data" />
+                <param name="dbKeyField" value="ISBN" />
+                <param name="damKeyField" value="ISBN" />
+                <param name="dbField:Country_Code" value="damField:Country Code:replace" />
+                <param name="dbField:HERS_format_group" value="damField:Format Group:replace" />
+                <param name="dbField:Stories" value="damField:Title:append" />
+                <param name="dbField:Story_Author" value="damField:Author:append" />
+                <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
+                <param name="dbField:Word_Count" value="damField:Word Count:replace" />
+                <param name="dbField:On_Sale" value="damField:Onsale:replace:textToDate='dd/MM/YYYY hh:mm:SS'" />
+            </params>
+        </action>
+        <action name="db-dam-sync-related-isbn">
+            <processClass>com.setantamedia.dis.action.DbDamSyncAction</processClass>
+            <params>
+                <param name="dbName" value="sqlserver" />
+                <param name="dbQuery" value="sql-get-related-isbn" />
+                <param name="damQuery" value="cumulus-query-1" />
+                <param name="dbView" value="pub" />
+                <param name="damView" value="sync-data" />
+                <param name="dbKeyField" value="Related_Digital_ISBN" />
+                <param name="damKeyField" value="eISBN" />
+                <param name="dbField:Country_Code" value="damField:Country Code:replace" />
+                <param name="dbField:HERS_format_group" value="damField:Format Group:replace" />
+                <param name="dbField:Stories" value="damField:Title:append" />
+                <param name="dbField:Story_Author" value="damField:Author:append" />
+                <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
+                <param name="dbField:Word_Count" value="damField:Word Count:replace" />
+                <param name="dbField:On_Sale" value="damField:Onsale:replace:stringToDateTime" />
+                <param name="dateTimeFormat" value="dd/MM/yyyy hh:mm:ss'" />
+             </params>
+        </action>
+        <action name="first-run-isbn">
+            <processClass>com.setantamedia.dis.action.DbDamSyncAction</processClass>
+            <params>
+                <param name="dbName" value="sqlserver" />
+                <param name="dbQuery" value="sql-get-related-isbn" />
+                <param name="damQuery" value="cumulus-first-run" />
+                <param name="dbView" value="pub" />
+                <param name="damView" value="sync-data" />
+                <param name="dbKeyField" value="Related_Digital_ISBN" />
+                <param name="damKeyField" value="eISBN" />
+                <param name="dbField:Country_Code" value="damField:Country Code:replace" />
+                <param name="dbField:HERS_format_group" value="damField:Format Group:replace" />
+                <param name="dbField:Stories" value="damField:Title:append" />
+                <param name="dbField:Story_Author" value="damField:Author:append" />
+                <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
+                <param name="dbField:Word_Count" value="damField:Word Count:replace" />
+            </params>
+        </action>
+        <action name="first-run-related-isbn">
+            <processClass>com.setantamedia.dis.action.DbDamSyncAction</processClass>
+            <params>
+                <param name="dbName" value="sqlserver" />
+                <param name="dbConnection" value="cumulus-test" />
+                <param name="damConnection" value="text-cover" />
+                <param name="dbQuery" value="sql-get-related-isbn" />
+                <param name="damQuery" value="cumulus-first-run" />
+                <param name="dbView" value="pub" />
+                <param name="damView" value="sync-data" />
+                <param name="dbKeyField" value="Related_Digital_ISBN" />
+                <param name="damKeyField" value="eISBN" />
+                <param name="dbField:Country_Code" value="damField:Country Code:replace" />
+                <param name="dbField:HERS_format_group" value="damField:Format Group:replace" />
+                <param name="dbField:Stories" value="damField:Title:append" />
+                <param name="dbField:Story_Author" value="damField:Author:append" />
+                <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
+                <param name="dbField:Word_Count" value="damField:Word Count:replace" />
+            </params>
+        </action>
+        <action name="office-pdf-archive">
+            <processClass>com.setantamedia.dis.action.pdfworkflow.PdfToolboxAction</processClass>
+            <params>
+                <param name="damConnection" value="text-cover" />
+                <param bame="rootCategory" value="$Categories:Document Archive" />
+                <param name="defaultprofilePath" value="" />
+                <param name="option:1" value="--nosummaryxups" />
+                <param name="option:2" value="--noprogress" />
+                <param name="option:3" value="--nohits" />
+                <param name="option:4" value="--nofixups" />
+                <param name="report:1" value="--report=MASK,ALWAYS,OVERVIEW,PATH=C:\Users\Colin\Desktop\${filename}.pdf" />
+                <param name="report:2" value="--report=XSLT=compacthtml_point,ALWAYS,OVERVIEW,PATH=C:\Users\Colin\Desktop\${filename}.pdf" />
+                <param name="returncode:0" value="com.setantamedia.dis.action.pdfworkflow.office.returncodes:AllGoodReturnCodeprocessor"/>
+            </params>
+        </action>
+    </actions>
+    <workflows>
+    </workflows>
+</fulcrumConfig>
