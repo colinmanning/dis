@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fulcrumConfig>
     <tmpFolder>/opt/dis/tmp</tmpFolder>
-    <previewCacheFolder>C:\dis\data\preview-cache</previewCacheFolder>
+    <previewCacheFolder>/opt/dis/preview-cache</previewCacheFolder>
     <useDam>Cumulus</useDam>
     <serverPrefix></serverPrefix>
     <dams>
@@ -246,7 +246,8 @@
                 <param name="dbField:Story_Author" value="damField:Author:append" />
                 <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
                 <param name="dbField:Word_Count" value="damField:Word Count:replace" />
-                <param name="dbField:On_Sale" value="damField:Onsale:replace:textToDate='dd/MM/YYYY hh:mm:SS'" />
+                <param name="dbField:On_Sale" value="damField:Onsale:replace:stringToDateTime" />
+                <param name="dateTimeFormat" value="M/d/YYYY hh:mm:ss" />
             </params>
         </action>
         <action name="db-dam-sync-related-isbn">
@@ -266,7 +267,7 @@
                 <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
                 <param name="dbField:Word_Count" value="damField:Word Count:replace" />
                 <param name="dbField:On_Sale" value="damField:Onsale:replace:stringToDateTime" />
-                <param name="dateTimeFormat" value="dd/MM/yyyy hh:mm:ss'" />
+                <param name="dateTimeFormat" value="M/d/YYYY hh:mm:ss" />
              </params>
         </action>
         <action name="first-run-isbn">
@@ -285,6 +286,8 @@
                 <param name="dbField:Story_Author" value="damField:Author:append" />
                 <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
                 <param name="dbField:Word_Count" value="damField:Word Count:replace" />
+                <param name="dbField:On_Sale" value="damField:Onsale:replace:stringToDateTime" />
+                <param name="dateTimeFiormat" value="M/d/YYYY hh:mm:ss" />
             </params>
         </action>
         <action name="first-run-related-isbn">
@@ -305,6 +308,8 @@
                 <param name="dbField:Story_Author" value="damField:Author:append" />
                 <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
                 <param name="dbField:Word_Count" value="damField:Word Count:replace" />
+                <param name="dbField:On_Sale" value="damField:Onsale:replace:stringToDateTime" />
+                <param name="dateTimeFiormat" value="M/d/YYYY hh:mm:ss" />
             </params>
         </action>
         <action name="office-pdf-archive">
