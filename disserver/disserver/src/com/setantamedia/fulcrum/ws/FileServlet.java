@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -435,7 +436,17 @@ public class FileServlet extends BaseServlet {
                         if (fileName == null || "".equals(fileName)) {
                             fileName = item.getName();
                         }
-                        tmpFile = tmpFolder.resolve(fileName);
+                        Path path = tmpFolder.resolve(Utilities.generateGuid());
+                        while (Files.exists(path)) {
+                            // unlikely, but should be fine to wait a bit for a new folder
+                            Thread.currentThread().wait(10);
+                            path = tmpFolder.resolve(Utilities.generateGuid());
+                        }
+                        if (!Files.exists(path)) {
+                            Files.createDirectories(path);
+                        }
+                        tmpFile = path.resolve(fileName);
+                        logger.debug("Uploading file to: "+tmpFile);
                         item.write(tmpFile.toFile());
                     }
                 }
@@ -457,6 +468,7 @@ public class FileServlet extends BaseServlet {
                     // remote the temporary file
                     if (tmpFile != null && Files.exists(tmpFile)) {
                         Files.delete(tmpFile);
+                        Files.delete(tmpFile.getParent());
                     }
                 }
             }

@@ -26,7 +26,7 @@ public abstract class BaseServlet extends HttpServlet {
    private final static Logger logger = Logger.getLogger(BaseServlet.class);
    public final static String DIS_DB_NAME = "dis-db";
    public final static String DIS_DB_CONNECTION_NAME = "main";
-   
+
    public final static String UTF_8 = "UTF-8";
    public final static String FORMAT_JPG = "jpg";
    public final static String FORMAT_PNG = "png";
@@ -125,8 +125,9 @@ public abstract class BaseServlet extends HttpServlet {
    }
 
    /**
-    * Returns true if the request comes from a permitted remote address localhost requests are always allowed
-    *
+    * Returns true if the request comes from a permitted remote address
+    * localhost requests are always allowed
+    * 
     * @param request
     * @return
     */
@@ -137,28 +138,32 @@ public abstract class BaseServlet extends HttpServlet {
       } else {
          // check if access for service is allowed
          Connection con = dam.connections.get(connectionName);
-         Service service = con.getService(serviceName);
-         if (service != null) {
-            if (service.isPublicService()) {
-               result = true;
-            } else if (service.isPublicService()){
-               result = true;
-            } else {
-               for (IPMatcher ipm : service.getIps()) {
-                  try {
-                     if (ipm.match(ip)) {
-                        result = true;
-                        break;
+         if (con == null) {
+            logger.error("Canot find connection with name: '" + connectionName + "'");
+         } else {
+            Service service = con.getService(serviceName);
+            if (service != null) {
+               if (service.isPublicService()) {
+                  result = true;
+               } else if (service.isPublicService()) {
+                  result = true;
+               } else {
+                  for (IPMatcher ipm : service.getIps()) {
+                     try {
+                        if (ipm.match(ip)) {
+                           result = true;
+                           break;
+                        }
+                     } catch (IPMatcherException e) {
+                        logger.error("Problem validating ip address: " + ip);
+                        e.printStackTrace();
                      }
-                  } catch (IPMatcherException e) {
-                     logger.error("Problem validating ip address: " + ip);
-                     e.printStackTrace();
                   }
                }
             }
-         }
-         if (!result) {
-            logger.info("Unauthorized attempt to access service '" + service + "' from IP address: " + ip);
+            if (!result) {
+               logger.info("Unauthorized attempt to access service '" + service + "' from IP address: " + ip);
+            }
          }
       }
       return result;
@@ -178,10 +183,12 @@ public abstract class BaseServlet extends HttpServlet {
       try {
          prefixLength = FULCRUM_PREFIX.length();
          if (mainServer == null) {
-            // e.g. if deployed to app server, and not running embedded - get from Servlet Context
+            // e.g. if deployed to app server, and not running embedded - get
+            // from Servlet Context
             ServletContext context = config.getServletContext();
 
-            // make sure to use setters, in case of required side effects (e.g. setting up tmp folder)
+            // make sure to use setters, in case of required side effects (e.g.
+            // setting up tmp folder)
             logger.info("getting mainServer from servlet context");
             mainServer = (CoreServer) context.getAttribute(FulcrumServletContextListener.MAIN_SERVER);
             fulcrumConfig = mainServer.getFulcrumConfig();

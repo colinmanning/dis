@@ -107,6 +107,7 @@ public class DisRequestHandler extends Thread {
                      break;
                   case DisService.PARAMETER_NAME:
                      actionName = argParts[1];
+                     params.put(argParts[0], argParts[1]);
                      break;
                   default:
                      params.put(argParts[0], argParts[1]);

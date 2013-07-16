@@ -64,6 +64,9 @@ public class DisService {
    public final static String PARAMETER_VIEW = BaseServlet.PARAMETER_VIEW;
    public final static String PARAMETER_FORMAT = BaseServlet.PARAMETER_FORMAT;
    public final static String PARAMETER_CONNECTION = BaseServlet.PARAMETER_CONNECTION;
+   public final static String PARAMETER_PATH = BaseServlet.PARAMETER_PATH;
+   public final static String PARAMETER_OFFSET = BaseServlet.PARAMETER_OFFSET;
+   public final static String PARAMETER_COUNT = BaseServlet.PARAMETER_COUNT;
 
    public final static String FORMAT_JSON = BaseServlet.FORMAT_JSON;
    
@@ -111,7 +114,6 @@ public class DisService {
     *           Only argument is a properties file
     */
    public static void main(String[] args) {
-      System.out.println("Java Native Library Path: '"+System.getProperty("java.library.path")+"'");
       disService = new DisService();
       disService.init(args);
       disService.start();
@@ -151,6 +153,8 @@ public class DisService {
    }
 
    public void start() {
+      System.out.println("Java Native Library Path: '"+System.getProperty("java.library.path")+"'");
+      logger.info("Java Native Library Path: '"+System.getProperty("java.library.path")+"'");
       if (!ready) {
          logger.error("initialisation did not complete, cannot start");
       }
