@@ -302,7 +302,7 @@ public class CumulusManager extends DamManager {
       RecordItem recordItem = null;
       try {
          collectionManager = helper.getOrInitCollectionManager(connection);
-         recordItem = collectionManager.getRecordToRead(new Integer(id), true);
+         recordItem = collectionManager.getRecordToRead(new Integer(id), false);
          result = recordItem.getDateValue(GUID.UID_REC_ASSET_MODIFICATION_DATE);
       } catch (Exception e) {
          e.printStackTrace();

@@ -140,9 +140,7 @@ public class CumulusHelper {
                   // - don't really expect clashes
                   workDir = tmpDir.resolve(connection.getName() + "_" + recordItem.getID() + "_" + fileGuid);
                }
-               Files.createDirectories(workDir); // and if someone else grapped
-                                                 // this one, it will fail here
-                                                 // also
+               Files.createDirectories(workDir); // and if someone else grabbed this one, it will fail here also
                Asset destinationAsset = new Asset(recordItem.getCumulusSession(), workDir.toFile());
                AssetCollection assetCollection = recordItem.doAssetAction(destinationAsset, assetAction);
                if (assetCollection != null) {
@@ -163,8 +161,7 @@ public class CumulusHelper {
                }
             } else {
                result = new FileStreamer();
-               // do not set the file reference in the FileStreamer - do not
-               // want to all a caller to get a handle on this
+               // do not set the file reference in the FileStreamer - do not want to all a caller to get a handle on this
                recordItem = collection.getRecordItemByID(id);
                result.setName(recordItem.getStringValue(GUID.UID_REC_RECORD_NAME));
                AssetReference assetReference = recordItem.getAssetReferenceValue(GUID.UID_REC_ASSET_REFERENCE);
