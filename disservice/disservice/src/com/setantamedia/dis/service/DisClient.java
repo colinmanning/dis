@@ -5,8 +5,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
+
+import com.setantamedia.fulcrum.common.SearchDescriptor;
 
 /**
  * Provides functions from DIS that can be accessed via the DIS Socket interface
@@ -17,48 +22,38 @@ import org.apache.log4j.Logger;
 public class DisClient {
 
    private static Logger logger = Logger.getLogger(DisClient.class);
-   private Socket socket = null;
    private String host = "127.0.0.1";
-   private String port = null;
+   private String port = "8080";
 
    public DisClient() {
 
    }
+
    public DisClient(String host, String port) {
       init();
-      if (connectToServer(host, port)) {
-         logger.info("Connected to DIS Service on host: '"+host+"' and port: '"+port+"'");
-      } else {
-         logger.info("Failed to connect to DIS Service on host: '"+host+"' and port: '"+port+"'");
-         
-      }
+      this.host = host;
+      this.port = port;
    }
 
    public void init() {
 
    }
 
-   public Boolean connectToServer(String host, String port) {
-      Boolean result = false;
-      this.host = host;
-      this.port = port;
-      try {
-         socket = new Socket(this.host, Integer.valueOf(this.port));
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-      result = true;
-      return result;
-   }
-
-   public DisSession login(String username, String password) {
-      DisSession result = null;
+   /**
+    * 
+    * @param username
+    * @param password
+    * @return session id if login is successful, null if not
+    */
+   public String login(String username, String password) {
+      String result = null;
       String request = DisService.OPERATION_LOGIN + ":" +
             DisService.PARAMETER_USERNAME + "=" + username + ":" +
             DisService.PARAMETER_PASSWORD + "=" + password;
       try {
-         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+         Socket s = new Socket(this.host, Integer.valueOf(this.port));
+         BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+         PrintWriter out = new PrintWriter(s.getOutputStream(), true);
          out.println(request);
          try {
             String response = in.readLine();
@@ -69,18 +64,24 @@ public class DisClient {
                if (responseParts.length > 0) {
                   switch (responseParts[0]) {
                   case DisService.STATUS_OK:
-                     result = new DisSession();
                      if (responseParts.length > 1) {
-                        for (String responsePart:responseParts) {
+                        for (String responsePart : responseParts) {
                            String[] responseParam = responsePart.split("=");
                            switch (responseParam[0]) {
-                           
+                           case DisService.PARAMETER_SESSIONID:
+                              result = responseParam[1];
+                              break;
+                           default:
+                              break;
                            }
                         }
                      }
                      break;
                   case DisService.STATUS_NOT_AUTHORISED:
-                     logger.info("Unahtohrused login request for username: '"+username+"'");
+                     logger.info("Unautohrused login request for username: '" + username + "'");
+                     break;
+                  case DisService.STATUS_ERROR:
+                     logger.error(response);
                      break;
                   default:
                      logger.error("Invalid socket response: '" + response + "' to request: '" + request + "'");
@@ -89,6 +90,8 @@ public class DisClient {
             }
          } catch (IOException ex) {
             ex.printStackTrace();
+         } finally {
+            s.close();
          }
       } catch (Exception e) {
          e.printStackTrace();
@@ -97,12 +100,124 @@ public class DisClient {
       return result;
    }
 
-   public void logout(DisSession session) {
-
+   public String logout(String sessionId) {
+      String result = null;
+      String request = DisService.OPERATION_LOGOUT + ":sessionid=" + sessionId;
+      try {
+         Socket s = new Socket(this.host, Integer.valueOf(this.port));
+         BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+         PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+         out.println(request);
+         try {
+            String response = in.readLine();
+            if (response == null || response.equals("")) {
+               logger.error("Invalid response to request: '" + request + "'");
+            } else {
+               String[] responseParts = response.split(":");
+               if (responseParts.length > 0) {
+                  result = responseParts[0];
+               }
+            }
+         } catch (IOException ex) {
+            ex.printStackTrace();
+         } finally {
+            s.close();
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return result;
    }
 
-   public void runAction(DisSession session, String actionName) {
+   public JSONObject runAction(String sessionId, String actionName, HashMap<String, String> params) {
+      JSONObject result = null;
+      String request = DisService.OPERATION_RUN_ACTION + ":sessionid=" + sessionId + ":name=" + actionName;
+      if (params != null) {
+         for (Map.Entry<String, String> entry : params.entrySet()) {
+            request += ":" + entry.getKey()+"="+entry.getValue();
+         }
+      }
+      try {
+         Socket s = new Socket(this.host, Integer.valueOf(this.port));
+         BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+         PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+         out.println(request);
+         try {
+            String response = in.readLine();
+            result = new JSONObject(response);
+         } catch (IOException ex) {
+            ex.printStackTrace();
+         } finally {
+            s.close();
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
 
+      return result;
    }
+   
+   public JSONObject describe(String sessionId, String connectionName, String viewName, String outputFormat) {
+      JSONObject result = new JSONObject();
+      String request = DisService.OPERATION_DESCRIBE + ":sessionid=" + sessionId +
+       ":" + DisService.PARAMETER_CONNECTION + "=" + connectionName;
+      if (viewName != null && !"".equals(viewName)) {
+       request += ":" + DisService.PARAMETER_VIEW + "=" + viewName;
+      }      
+      if (outputFormat != null && !"".equals(outputFormat)) {
+       request += ":" + DisService.PARAMETER_FORMAT + "=" + outputFormat;
+      }
+      try {
+         Socket s = new Socket(this.host, Integer.valueOf(this.port));
+         BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+         PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+         out.println(request);
+         try {
+            String response = in.readLine();
+            if (response != null) {
+               result = new JSONObject(response);
+            }
+         } catch (IOException ex) {
+            ex.printStackTrace();
+         } finally {
+            s.close();
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+   
+   public JSONObject categorySearch(String sessionId, String connectionName, String categoryPath) {
+      String request = DisService.OPERATION_SEARCH + ":sessionid=" + sessionId + 
+      ":" + DisService.PARAMETER_CONNECTION + "=" + connectionName +
+      ":" + DisService.PARAMETER_PATH + "=" + categoryPath;
+      return sendRequest(request);
+   }
+   
+   private JSONObject sendRequest(String request) {
+      JSONObject result = new JSONObject();
+      try {
+         Socket s = new Socket(this.host, Integer.valueOf(this.port));
+         BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+         PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+         out.println(request);
+         try {
+            String response = in.readLine();
+            if (response != null) {
+               result = new JSONObject(response);
+            }
+         } catch (IOException ex) {
+            ex.printStackTrace();
+         } finally {
+            s.close();
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+
+
 
 }
