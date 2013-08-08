@@ -11,8 +11,6 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import com.setantamedia.fulcrum.common.SearchDescriptor;
-
 /**
  * Provides functions from DIS that can be accessed via the DIS Socket interface
  * 

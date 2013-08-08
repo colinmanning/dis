@@ -15,9 +15,9 @@ import org.json.JSONObject;
 public abstract class DamEntity {
 
    private static DateFormat colinTimeFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
-   private static DateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-   private static DateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
-   private static DateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
+   protected static DateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+   protected static DateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
+   protected static DateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
    public final static Integer DEFAULT_ID = -1;
    public final static String FIELD_ID = "id";
    public final static String FIELD_CONNECTION_NAME = "connectionName";

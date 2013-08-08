@@ -3,15 +3,13 @@ package com.setantamedia.fulcrum.models.core;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
-import java.util.Map;
 import org.json.JSONObject;
 
 
 public class Entity {
-   private static DateFormat colinTimeFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
-   private static DateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-   private static DateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
-   private static DateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
+   protected static DateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+   protected static DateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
+   protected static DateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
    public final static Integer DEFAULT_ID = -1;
    public final static String FIELD_ID = "id";
    private Integer id = DEFAULT_ID;

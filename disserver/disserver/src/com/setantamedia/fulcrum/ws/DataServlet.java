@@ -7,7 +7,6 @@ import com.setantamedia.fulcrum.common.Common;
 import com.setantamedia.fulcrum.common.Session;
 import com.setantamedia.fulcrum.common.Utilities;
 import com.setantamedia.fulcrum.dam.entities.Folder;
-import static com.setantamedia.fulcrum.ws.BaseServlet.PARAMETER_PATH;
 import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.Record;
 import com.setantamedia.fulcrum.ws.types.User;
@@ -83,11 +82,6 @@ public class DataServlet extends BaseServlet {
             }
 
             String itemName = request.getParameter(PARAMETER_ITEM);
-            String inheritCategoryFields = request.getParameter(PARAMETER_INHERIT_CATEGORY_FIELDS);
-            String[] inheritFields = new String[0];
-            if (inheritCategoryFields != null) {
-                inheritFields = inheritCategoryFields.split(",");
-            }
             if (operationName.equals(Operations.create.toString())) {
                 if (itemName == null) {
                     itemName = DEFAULT_ITEM;

@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import org.apache.log4j.Logger;
 
 /**
  * A class to show how to use DIS location monitors, to implement a simple file
@@ -27,7 +26,6 @@ import org.apache.log4j.Logger;
  */
 public class CategoryFileInputProcessor extends FileProcessor {
 
-    private final static Logger logger = Logger.getLogger(CategoryFileInputProcessor.class);
     public final static String PARAM_CATEGORY_ROOT = "categoryRoot";
     public final static String PARAM_SUBFOLDER_CATEGORIES = "subFolderCategories";
     public final static String PARAM_CATEGORY_DELIMITER = "categoryDelimiter";

@@ -21,7 +21,6 @@ public class MoveFileProcessor extends FileProcessor {
    public final static String PARAM_TRANSFER_DONE_FIELD = "transferdonefield";
    public final static String PARAM_EMBED_IPTC = "embed-iptc";
    private Path destinationFolder = null;
-   private String controlFileName = null;
    private String transferDoneField = null;
    private FileSystem fs = FileSystems.getDefault();
 
@@ -43,7 +42,6 @@ public class MoveFileProcessor extends FileProcessor {
          if (params.get(PARAM_TRANSFER_DONE_FIELD) != null) {
             transferDoneField = params.get(PARAM_TRANSFER_DONE_FIELD);
          }
-         controlFileName = (params.get(FileServlet.PARAMETER_CONTROL_FILE) != null) ? params.get(FileServlet.PARAMETER_CONTROL_FILE) : FileServlet.DEFAULT_CONTROL_FILE_NAME;
       } catch (Exception e) {
          e.printStackTrace();
       }

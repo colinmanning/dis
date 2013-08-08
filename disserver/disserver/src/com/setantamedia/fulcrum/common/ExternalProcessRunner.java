@@ -152,6 +152,7 @@ public class ExternalProcessRunner {
       if (process != null) {
          try {
             // check for exit code, will throw exception if not already terminated
+            @SuppressWarnings("unused")
             int status = process.exitValue();
          } catch (IllegalThreadStateException e) {
             logger.info("Destroying external process: '" + cmdString + "'");

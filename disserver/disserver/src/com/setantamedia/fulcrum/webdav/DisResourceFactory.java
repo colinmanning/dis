@@ -6,7 +6,6 @@ import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.Resource;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -14,7 +13,6 @@ import org.apache.log4j.Logger;
  */
 public class DisResourceFactory implements ResourceFactory {
 
-   private final static Logger logger = Logger.getLogger(DisResourceFactory.class);
    private CoreServer disServer = null;
 
    @Override

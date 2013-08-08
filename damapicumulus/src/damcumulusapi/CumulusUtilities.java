@@ -6,7 +6,6 @@ import com.canto.cumulus.exceptions.ItemNotFoundException;
 import com.setantamedia.fulcrum.common.*;
 import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.Record;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.FileSystems;
@@ -357,8 +356,7 @@ public class CumulusUtilities {
             if (assetCollection != null) {
                Iterator<Asset> it = assetCollection.iterator();
                if (it.hasNext()) {
-                  Asset previewAsset = it.next();
-                  Path tmpFile = FileSystems.getDefault().getPath(previewAsset.getAsFile().getAbsolutePath());
+                  //Asset previewAsset = it.next();
                   try (OutputStream fos = Files.newOutputStream(file)) {
                      fos.write(data);
                      fos.flush();

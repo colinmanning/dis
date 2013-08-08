@@ -501,10 +501,6 @@ public class FileServlet extends BaseServlet {
         public FileSaverThread() {
         }
 
-        public String getFolderPath() {
-            return folderPath;
-        }
-
         public void setUser(User user) {
             this.user = user;
         }

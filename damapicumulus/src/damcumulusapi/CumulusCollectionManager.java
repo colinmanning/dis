@@ -59,12 +59,6 @@ public class CumulusCollectionManager extends DatabaseManager {
         return categoryLayout;
     }
 
-    private void addConnection(Connection connection) {
-    }
-
-    private void removeConnection(Connection connection) {
-    }
-
     @Override
     public boolean init(Connection connection) {
         boolean result = false;

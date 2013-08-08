@@ -5,7 +5,6 @@ import com.setantamedia.fulcrum.config.Field;
 import com.setantamedia.fulcrum.config.FulcrumConfig;
 import com.setantamedia.fulcrum.config.View;
 import com.setantamedia.fulcrum.db.DbManager;
-import static com.setantamedia.fulcrum.db.DbManager.ALL_FIELDS;
 import com.setantamedia.fulcrum.db.DbSessionData;
 import com.setantamedia.fulcrum.models.core.Person;
 import com.setantamedia.fulcrum.ws.types.DbRecord;
@@ -32,6 +31,7 @@ public class SqlServerDbManager implements DbManager {
     private String schemaFile = null;
     private String customSchemaFile = null;
     private HashMap<String, com.setantamedia.fulcrum.common.Connection> connections = null;
+    @SuppressWarnings("unused")
     private String databaseName = null;
     private List<View> configViews = null;
     private HashMap<String, View> views = null;
@@ -46,8 +46,7 @@ public class SqlServerDbManager implements DbManager {
     private final static String SQLS_TYPE_BOOLEAN = "bit";
     private final static String SQLS_TYPE_TIMESTAMP = "timestamp";
     private final static String SQLS_TYPE_CLOB = "varbinary";
-    private final static String SQLS_TYPE_UNIQUEID = "uniqueidentifier";
-
+ 
     @Override
     public void init() {
         try {
@@ -248,7 +247,6 @@ public class SqlServerDbManager implements DbManager {
         DbSessionData result = null;
         java.sql.Connection sqlConnection = null;
         try {
-            com.setantamedia.fulcrum.common.Connection connection = connections.get(connectionName);
             sqlConnection = getJdbcConnection(connectionName, username, password);
             if (sqlConnection != null) {
                 result = new DbSessionData();
@@ -378,7 +376,7 @@ public class SqlServerDbManager implements DbManager {
             if (person != null) {
                 String username = (!"".equals(person.getUsername())) ? person.getUsername() : connection.getUsername();
                 String password = (!"".equals(person.getPassword())) ? person.getPassword() : connection.getPassword();
-                sqlConnection = getJdbcConnection(connectionName, person.getUsername(), person.getPassword());
+                sqlConnection = getJdbcConnection(connectionName, username, password);
             } else {
                 sqlConnection = getJdbcConnection(connectionName);
             }
@@ -548,10 +546,9 @@ public class SqlServerDbManager implements DbManager {
         java.sql.Connection sqlConnection = null;
         try {
             try {
-                com.setantamedia.fulcrum.common.Connection connection = connections.get(connectionName);
                 sqlConnection = getJdbcConnection(connectionName, username, password);
                 // if no SQLException thrown, then username and password are good
-				/*
+				    /*
                  * Parameter "table" will be the name of the table holding user information such as name, email etc.
                  * username is the mey into that table - it must be unique
                  */

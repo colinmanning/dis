@@ -19,19 +19,6 @@ public class Utilities {
    public final static int BUFFER_SIZE = 16 * 1024;
    public final static char WINDOWS_SEPARATOR = '\\';
 
-   /**
-    * Ensure field name can be used as a variable name in various programming environments, so no spaces or special
-    * characters.
-    *
-    * " " => "_" "(" => "_LRB_" ")" => "_RRB_" "[" => "_LSB_" "]" => "_RSB_" "/" => "_FWD_" "\" => "_BWD_" "-" =>
-    * "_HYP_"
-    *
-    * @param fieldName
-    * @return
-    */
-   public static String normaliseFieldName(String fieldName) {
-      return fieldName.replaceAll(" ", "_").replaceAll("\\(", "_LRB_").replaceAll("\\)", "_RRB_").replaceAll("\\[", "_LSB_").replaceAll("\\]", "_RSB_").replaceAll("\\/", "_FWD_").replaceAll("\\\\", "_BWD_").replaceAll("\\-", "_HYP_");
-   }
 
    public static String generateGuid() {
       String result = UUIDUtil.combUUID().toString();
@@ -41,7 +28,6 @@ public class Utilities {
    public static String generatePassword() {
       String result = null;
       Long timeNow = Calendar.getInstance().getTimeInMillis();
-      StringBuilder sb = new StringBuilder();
       if ((timeNow / 2) == 0) {
          result = getRandomChars(8);
       } else {
@@ -77,10 +63,6 @@ public class Utilities {
 
    public static Locale getLocale(String locale) {
       return (locale != null && !"".equals(locale)) ? new Locale(locale) : Locale.getDefault();
-   }
-
-   public static String firstUpperNormalize(String value) {
-      return firstUpper(normaliseFieldName(value));
    }
 
    public static String firstUpper(String value) {

@@ -38,7 +38,6 @@ public class FtpFileProcessor extends FileProcessor {
    private String ftpUsername = null;
    private String ftpPassword = null;
    private String ftpFolder = null;
-   private String controlFileName = null;
    private FTPClient ftpClient = null;
    private String transferDoneField = null;
    private Boolean passiveMode = true;
@@ -76,7 +75,6 @@ public class FtpFileProcessor extends FileProcessor {
          if (params.get(PARAM_TRANSFER_DONE_FIELD) != null) {
             transferDoneField = params.get(PARAM_TRANSFER_DONE_FIELD);
          }
-         controlFileName = (params.get(FileServlet.PARAMETER_CONTROL_FILE) != null) ? params.get(FileServlet.PARAMETER_CONTROL_FILE) : FileServlet.DEFAULT_CONTROL_FILE_NAME;
          ftpClient = new FTPClient();
       } catch (Exception e) {
          e.printStackTrace();
@@ -103,7 +101,6 @@ public class FtpFileProcessor extends FileProcessor {
          if (fname.endsWith(".csv")) {
             logger.info("got a file list to process");
             String folderPath = null;
-            String sourcePath = null;
             ftpClient.connect(ftpServer, ftpPort);
             if (passiveMode) {
                ftpClient.enterLocalPassiveMode();
@@ -142,9 +139,6 @@ public class FtpFileProcessor extends FileProcessor {
                      if (line.startsWith("Connection")) {
                         String[] bits = line.split(",");
                         damConnectionName = bits[1];
-                     } else if (line.startsWith("Source Path")) {
-                        String[] bits = line.split(",");
-                        sourcePath = bits[1];
                      } else if (line.startsWith("Folder Path")) {
                         String[] bits = line.split(",");
                         if (bits.length > 1) {
@@ -269,7 +263,7 @@ public class FtpFileProcessor extends FileProcessor {
       }
    }
 
-   private class DirectoryDeleter extends SimpleFileVisitor<Path> {
+   public class DirectoryDeleter extends SimpleFileVisitor<Path> {
 
       @Override
       public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {

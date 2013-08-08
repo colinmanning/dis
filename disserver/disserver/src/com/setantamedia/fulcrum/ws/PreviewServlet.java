@@ -6,7 +6,6 @@ import com.setantamedia.fulcrum.common.SortRule;
 import com.setantamedia.fulcrum.common.Utilities;
 import com.setantamedia.fulcrum.config.Preview;
 import com.setantamedia.fulcrum.previews.PreviewCache;
-import com.setantamedia.fulcrum.ws.types.QueryResult;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +14,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.Date;
 import java.util.List;
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,7 +46,6 @@ public class PreviewServlet extends BaseServlet {
       logger.info("Initialising Preview Servlet");
       super.init(config);
       try {
-         ServletContext context = config.getServletContext();
          previewCache = new PreviewCache(mainServer.getPreviewCacheFolder());
       } catch (Exception e) {
          e.printStackTrace();

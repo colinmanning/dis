@@ -1,6 +1,5 @@
 package com.setantamedia.fulcrum.webdav;
 
-import com.setantamedia.fulcrum.DamManagerNotImplementedException;
 import com.setantamedia.fulcrum.common.Dam;
 import com.setantamedia.fulcrum.common.SearchDescriptor;
 import com.setantamedia.fulcrum.common.Utilities;
@@ -18,7 +17,6 @@ import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.*;
 import java.io.*;
 import java.util.*;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -26,7 +24,6 @@ import org.apache.log4j.Logger;
  */
 public class DisFolderResource implements GetableResource, PropFindableResource, PutableResource, MakeCollectionableResource {
 
-   private final static Logger logger = Logger.getLogger(DisFolderResource.class);
    private Dam dam = null;
    private String connectionName = null;
    private String id = null;
