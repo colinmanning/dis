@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fulcrumConfig>
+    <tmpFolder>/opt/dis/tmp</tmpFolder>
+    <previewCacheFolder>/opt/dis/preview-cache</previewCacheFolder>
+    <useDam>Cumulus</useDam>
+    <serverPrefix></serverPrefix>
+    <dams>
+        <dam name="Cumulus">
+            <baseUrl>http://dis.printflow2.com</baseUrl>
+            <managerClass>damcumulusapi.CumulusManager</managerClass>
+            <connections>
+                <connection name="vodacom">
+                    <server>localhost</server>
+                    <user>cumulus</user>
+                    <password>berlinFinn14</password>
+                    <database>vodacom</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>0</poolSize>
+                </connection>
+             </connections>
+             <views>
+                <view name="overview" locale="default">
+                    <field name="Record Name" />
+                    <field name="Caption" />                               
+                    <field name="Asset Creation Date" />                               
+                    <field name="Asset Modification Date" />                               
+                    <preview>small</preview>
+                    <preview>medium</preview>
+                </view>
+            </views>
+        </dam>
+    </dams>
+    <databases>
+        <database name="dis-db">
+            <managerClass>com.setantamedia.fulcrum.db.impl.H2DbManager</managerClass>
+            <connections>
+                <connection name="main">
+                    <server>localhost</server>
+                    <user>sa</user>
+                    <password>otec-europe</password>
+                    <readonly>false</readonly>
+                    <database>jdbc:h2:tcp://localhost/usr/local/Cumulus_WebSolutions/apache-tomcat-7.0.26/webapps/diswebWEB-INF/db/dis-db</database>
+                    <readOnly>false</readOnly>
+                    <poolSize>0</poolSize>
+                </connection>
+            </connections>
+            <views>
+            </views>
+        </database>
+    </databases>
+    <queries>
+        <query name="cumulus-query-1">
+            <text>"Record Creation Date"  &gt;= $today-7d &amp;&amp; "Series or Imprint" !*</text>
+        </query>
+    </queries>
+    <previews>
+        <preview name="small" format="png">
+            <maxsize>200</maxsize>
+        </preview>
+        <preview name="medium" format="png">
+            <maxsize>400</maxsize>
+        </preview>
+        <preview name="gallery" format="png">
+            <size>200</size>
+        </preview>
+    </previews>
+
+    <locations>
+        <location name="point-demo-images">
+            <folder>/home/printflow/Dropbox/point-demo/images</folder>
+            <accessCode>colin</accessCode>
+            <access>read-write</access>
+            <monitor initialScan="false" scanSubFolders="true">
+                <processClass>com.setantamedia.dis.workflow.locations.SimpleFolderWatcher</processClass>
+                <params>
+                    <param name="categoryRoot" value="$Categories:Demo:Images" />
+                    <param name="damConnection" value="vodacom" />
+                    <param name="uploadProfile" value="Demo-Images" />
+                    <param name="deleteFile" value="true" />
+                </params>
+            </monitor>
+        </location>
+        <location name="point-demo-images">
+            <folder>/home/printflow/Dropbox/point-demo/documents</folder>
+            <accessCode>colin</accessCode>
+            <access>read-write</access>
+            <monitor initialScan="false" scanSubFolders="true">
+                <processClass>com.setantamedia.dis.workflow.locations.SimpleFolderWatcher</processClass>
+                <params>
+                    <param name="categoryRoot" value="$Categories:Demo:Documents" />
+                    <param name="damConnection" value="vodacom" />
+                    <param name="uploadProfile" value="Demo-Documents" />
+                    <param name="deleteFile" value="true" />
+                </params>
+            </monitor>
+        </location>
+        <location name="point-demo-documents">
+            <folder>/home/printflow/Dropbox/point-demo/presentations</folder>
+            <accessCode>colin</accessCode>
+            <access>read-write</access>
+            <monitor initialScan="false" scanSubFolders="true">
+                <processClass>com.setantamedia.dis.workflow.locations.SimpleFolderWatcher</processClass>
+                <params>
+                    <param name="categoryRoot" value="$Categories:Demo:Presentations" />
+                    <param name="damConnection" value="vodacom" />
+                    <param name="uploadProfile" value="Demo-Presentations" />
+                    <param name="deleteFile" value="true" />
+                </params>
+            </monitor>
+        </location>
+    </locations>
+    <actions>
+    </actions>
+    <workflows>
+    </workflows>
+</fulcrumConfig>
