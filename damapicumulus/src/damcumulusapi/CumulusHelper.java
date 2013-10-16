@@ -198,10 +198,31 @@ public class CumulusHelper {
                } catch (PermissionDeniedException | CumulusException | FieldNotFoundException e) {
                   e.printStackTrace();
                } finally {
+                  if (collectionManager.getOnDemand()) {
+                     // make sure we free up used connection if on demand
+                     collectionManager.terminate();
+                  }
                }
             }
          }
       } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+   
+   public Category findCategory(Connection connection, Integer pathId) {
+      Category result = null;
+      CategoryItem rootCategory;
+      CumulusCollectionManager collectionManager;
+      try {
+         collectionManager = getOrInitCollectionManager(connection);
+         CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
+         if (collection != null) {
+            rootCategory = collection.getCategoryItemByID(pathId);
+            result = CumulusUtilities.processCategories(rootCategory);
+         }
+      } catch (InvalidArgumentException | ItemNotFoundException | CumulusException e) {
          e.printStackTrace();
       }
       return result;
@@ -829,6 +850,9 @@ public class CumulusHelper {
 
    public Map<String, String> getPreviews(Connection connection, String viewName) {
       Map<String, String> result = null;
+      if (viewName == null) {
+         return result;
+      }
       HashMap<String, HashMap<String, String>> connectionPreviews = previewFields.get(connection);
       if (connectionPreviews != null && connectionPreviews.get(viewName) != null) {
          return connectionPreviews.get(viewName);
@@ -868,6 +892,9 @@ public class CumulusHelper {
 
    public Map<String, String> getLinks(Connection connection, String viewName) {
       Map<String, String> result = null;
+      if (viewName == null) {
+         return result;
+      }
       HashMap<String, HashMap<String, String>> connectionLinks = linkFields.get(connection);
       if (connectionLinks != null && connectionLinks.get(viewName) != null) {
          return connectionLinks.get(viewName);
@@ -925,14 +952,7 @@ public class CumulusHelper {
          String tableName = fieldDefinition.getLayout().getTableName() + "/" + fieldDefinition.getFieldUID().toString();
          Layout tableLayout = collectionManager.getMasterCatalog().getLayout(tableName);
          Set<GUID> tableGuids = tableLayout.getFieldUIDs();
-         DatabaseField[] columns = new DatabaseField[tableGuids.size() - 2]; // do
-                                                                             // not
-                                                                             // bother
-                                                                             // with
-                                                                             // Host
-                                                                             // and
-                                                                             // Item
-                                                                             // ids
+         DatabaseField[] columns = new DatabaseField[tableGuids.size() - 2]; // do not bother with Host and Item ids
          int i = 0;
          for (GUID tableGuid : tableGuids) {
             if (tableGuid.equals(GUID.UID_HOST_ITEM_ID) || tableGuid.equals(GUID.UID_ITEM_ID)) {
@@ -983,7 +1003,10 @@ public class CumulusHelper {
       CumulusCollectionManager collectionManager = null;
       ResultSet queryResults = null;
       try {
-         DatabaseField[] fields = getFields(connection, searchDescriptor.getViewName());
+         DatabaseField[] fields = new DatabaseField[0];
+         if (searchDescriptor.getViewName() != null) {
+            fields = getFields(connection, searchDescriptor.getViewName());
+         }
          Map<String, String> previews = getPreviews(connection, searchDescriptor.getViewName());
          Map<String, String> links = getLinks(connection, searchDescriptor.getViewName());
          collectionManager = getOrInitCollectionManager(connection);
@@ -1159,23 +1182,27 @@ public class CumulusHelper {
                      }
 
                      // do previews
-                     Map<String, String> preview_links = new HashMap<>();
-                     for (Map.Entry<String, String> preview : previews.entrySet()) {
-                        String url = preview.getValue().replaceAll(DamManager.TEMPLATE_PARAM_CATALOG_NAME_REGEX, connection.getName());
-                        url = url.replaceAll(DamManager.TEMPLATE_PARAM_ID_REGEX, String.valueOf(records[i].getId()));
-                        url = url.replaceAll(DamManager.TEMPLATE_PARAM_NAME_REGEX, preview.getKey());
-                        preview_links.put(preview.getKey(), url);
+                     if (previews != null) {
+                        Map<String, String> preview_links = new HashMap<>();
+                        for (Map.Entry<String, String> preview : previews.entrySet()) {
+                           String url = preview.getValue().replaceAll(DamManager.TEMPLATE_PARAM_CATALOG_NAME_REGEX, connection.getName());
+                           url = url.replaceAll(DamManager.TEMPLATE_PARAM_ID_REGEX, String.valueOf(records[i].getId()));
+                           url = url.replaceAll(DamManager.TEMPLATE_PARAM_NAME_REGEX, preview.getKey());
+                           preview_links.put(preview.getKey(), url);
+                        }
+                        records[i].setPreviews(preview_links);
                      }
-                     records[i].setPreviews(preview_links);
 
                      // do links
-                     Map<String, String> record_links = new HashMap<>();
-                     for (Map.Entry<String, String> link : links.entrySet()) {
-                        String url = link.getValue().replaceAll(DamManager.TEMPLATE_PARAM_CATALOG_NAME_REGEX, String.valueOf(connection.getName()));
-                        url = url.replaceAll(DamManager.TEMPLATE_PARAM_ID_REGEX, String.valueOf(records[i].getId()));
-                        record_links.put(link.getKey(), url);
+                     if (links != null) {
+                        Map<String, String> record_links = new HashMap<>();
+                        for (Map.Entry<String, String> link : links.entrySet()) {
+                           String url = link.getValue().replaceAll(DamManager.TEMPLATE_PARAM_CATALOG_NAME_REGEX, String.valueOf(connection.getName()));
+                           url = url.replaceAll(DamManager.TEMPLATE_PARAM_ID_REGEX, String.valueOf(records[i].getId()));
+                           record_links.put(link.getKey(), url);
+                        }
+                        records[i].setLinks(record_links);
                      }
-                     records[i].setLinks(record_links);
                   } else {
                      logger.info("connection pool did not return record - you may need to increase your Cumulus license count");
                   }
@@ -1655,6 +1682,9 @@ public class CumulusHelper {
          e.printStackTrace();
       } finally {
          if (collection != null) {
+            if (recordItem != null) {
+               collectionManager.releaseReadRecordItem(recordItem);
+            }
             collectionManager.returnReadObject(collection);
          }
       }

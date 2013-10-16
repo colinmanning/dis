@@ -168,7 +168,7 @@ public class CumulusManager extends DamManager {
             // extra conditions specified on top of the quick search
             query += " && (" + filter + ")";
          }
-         logger.debug("Query is: '" + query + "'");
+         // logger.debug("Query is: '" + query + "'");
          result = helper.findRecords(connection, query, searchDescriptor);
       } catch (Exception e) {
          e.printStackTrace();
@@ -193,6 +193,26 @@ public class CumulusManager extends DamManager {
       FileStreamer result = null;
       try {
          result = helper.downloadAsset(connection, new Integer(id), version, actionName);
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+
+   public FileStreamer getFile(Connection connection, User user, String fieldKey, String fieldValue, Integer version, String actionName) throws DamManagerNotImplementedException {
+      FileStreamer result = null;
+      try {
+         String id = null;
+         SearchDescriptor sd = new SearchDescriptor();
+         String query = "\"" + fieldKey + "\" == \"" + fieldValue + "\"";
+         QueryResult qr = helper.findRecords(connection, query, sd);
+         if (qr != null && qr.getRecords().length > 0) {
+            // we only support single file download for now, so grab the first
+            // one only
+            id = qr.getRecords()[0].getId();
+            result = helper.downloadAsset(connection, new Integer(id), version, actionName);
+         }
+
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -236,7 +256,11 @@ public class CumulusManager extends DamManager {
          e.printStackTrace();
       } finally {
          if (catalogingListener != null) {
-            collection.removeCatalogingListener(catalogingListener);
+            try {
+               collection.removeCatalogingListener(catalogingListener);
+            } catch (Exception cle) {
+               // do nothing
+            }
          }
          collectionManager.returnWriteObject(collection);
       }
@@ -266,6 +290,16 @@ public class CumulusManager extends DamManager {
    public Folder createFolder(Connection connection, User user, String path) {
       Folder result;
       Category folderCategory = helper.createCategory(connection, path);
+      result = new Folder();
+      result.setId(String.valueOf(folderCategory.getId()));
+      result.setName(folderCategory.getName());
+      return result;
+   }
+
+   @Override
+   public Folder createFolder(Connection connection, User user, Integer pathId) {
+      Folder result;
+      Category folderCategory = helper.findCategory(connection, pathId);
       result = new Folder();
       result.setId(String.valueOf(folderCategory.getId()));
       result.setName(folderCategory.getName());
@@ -418,14 +452,17 @@ public class CumulusManager extends DamManager {
              * actionName, tmpDir); }
              */
 
-            logger.debug("about to do preview - file is: " + file.toString());
+            // logger.debug("about to do preview - file is: " +
+            // file.toString());
             if (FORMAT_PNG.equalsIgnoreCase(format)) {
                // may be transparent
-               logger.debug("about to generate PNG preview file: " + file.toString());
+               // logger.debug("about to generate PNG preview file: " +
+               // file.toString());
                ImagingPixmap.ColorSpace colorSpace = pixmap.getColorSpace();
                pixmap.save(file.toFile(), ImagingPixmap.Format.PNG, colorSpace.equals(ImagingPixmap.ColorSpace.RGBA) ? colorSpace : ImagingPixmap.ColorSpace.RGB, ImagingPixmap.Compression.FLATE, cl, false, 0);
             } else {
-               logger.debug("about to generate JPG  preview file: " + file.toString());
+               // logger.debug("about to generate JPG  preview file: " +
+               // file.toString());
                pixmap.save(file.toFile(), ImagingPixmap.Format.JPEG, ImagingPixmap.ColorSpace.RGB, ImagingPixmap.Compression.JPEG, cl, false, 0);
             }
          } catch (Exception ed) {
@@ -441,7 +478,10 @@ public class CumulusManager extends DamManager {
       } finally {
          if (collectionManager != null && recordItem != null) {
             collectionManager.releaseReadRecordItem(recordItem);
-         }         
+         }
+         if (collectionManager != null && collection != null) {
+            collectionManager.returnReadObject(collection);
+         }
       }
       return result;
    }
