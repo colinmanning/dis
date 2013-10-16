@@ -161,6 +161,10 @@ public class DamManager {
         throw new DamManagerNotImplementedException();
     }
 
+    public FileStreamer getFile(Connection connection, User user, String fieldKey, String keyValue, Integer version, String actionName) throws DamManagerNotImplementedException {
+       throw new DamManagerNotImplementedException();
+    }
+    
     public boolean updateRecord(Connection connection, DatabaseField rootFieldDef, String tablePath, String recordKey, HashMap<String, String> fieldValues) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();
     }
@@ -196,6 +200,10 @@ public class DamManager {
     public Folder createFolder(Connection connection, User user, String path) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();
     }
+    
+    public Folder createFolder(Connection connection, User user, Integer pathId) throws DamManagerNotImplementedException {
+       throw new DamManagerNotImplementedException();
+   }
 
     public Folder createSubFolder(Connection connection, User user, Folder parent, String path) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();
@@ -203,6 +211,14 @@ public class DamManager {
     public Category createCategory(Connection connection, User user, String path) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();
     }
+    
+    /*
+     * Keep this version for backward compilation compatability
+     */
+    public Category createCategory(Connection connection, String path) throws DamManagerNotImplementedException {
+       throw new DamManagerNotImplementedException();
+   }
+ 
 
     public Category createSubCategory(Connection connection, User user, Integer parentId, String path) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();

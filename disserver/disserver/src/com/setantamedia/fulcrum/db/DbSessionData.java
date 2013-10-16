@@ -6,6 +6,8 @@ import org.h2.jdbcx.JdbcConnectionPool;
 
 public class DbSessionData {
 
+   public final static String DB_SESSION_DATA = "DBMANAGER_SESSION_DATA";
+
    private String sessionId = null;
    private JdbcConnectionPool h2ConnectionPool = null;
    private Connection jdbcConnection;

@@ -97,6 +97,8 @@ public abstract class BaseServlet extends HttpServlet {
    public final static String PARAMETER_JSON = "json";
    public final static String PARAMETER_RSS = "rss";
    public final static String PARAMETER_INHERIT_CATEGORY_FIELDS = "inheritcateogoryfields";
+   public final static String PARAMETER_FIELD_KEY = "fieldkey";
+   public final static String PARAMETER_FIELD_VALUE = "fieldvalue";
    public final static String PARAM_PROJECTNAME = "projectname";
    public final static String DIRECTION_ASCENDING = "ascending";
    public final static String DIRECTION_DESCENDING = "descending";
