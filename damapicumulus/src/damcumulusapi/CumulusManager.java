@@ -198,6 +198,17 @@ public class CumulusManager extends DamManager {
       }
       return result;
    }
+   
+   public FileStreamer getCroppedFile(Connection connection, User user, String id, Integer version, String actionName,
+         Integer top, Integer left, Integer width, Integer height) throws DamManagerNotImplementedException {
+      FileStreamer result = null;
+      try {
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+
 
    public FileStreamer getFile(Connection connection, User user, String fieldKey, String fieldValue, Integer version, String actionName) throws DamManagerNotImplementedException {
       FileStreamer result = null;
@@ -312,7 +323,25 @@ public class CumulusManager extends DamManager {
    }
 
    @Override
-   public Category findCategories(Connection connection, String path) {
+   public Category findCategories(Connection connection, Integer id, boolean recursive) {
+      Category result = null;
+      CategoryItem rootCategory;
+      CumulusCollectionManager collectionManager;
+      try {
+         collectionManager = helper.getOrInitCollectionManager(connection);
+         CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
+         if (collection != null) {
+            rootCategory = collection.getCategoryItemByID(id);
+            result = CumulusUtilities.processCategories(rootCategory, recursive);
+         }
+      } catch (InvalidArgumentException | ItemNotFoundException | CumulusException e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+   
+   @Override
+   public Category findCategories(Connection connection, String path, boolean recursive) {
       Category result = null;
       CategoryItem rootCategory;
       CumulusCollectionManager collectionManager;
@@ -321,13 +350,14 @@ public class CumulusManager extends DamManager {
          CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
          if (collection != null) {
             rootCategory = collection.getCategoryItemByID(collection.getCategoryTreeItemIDByPath(path));
-            result = CumulusUtilities.processCategories(rootCategory);
+            result = CumulusUtilities.processCategories(rootCategory, recursive);
          }
       } catch (InvalidArgumentException | ItemNotFoundException | CumulusException e) {
          e.printStackTrace();
       }
       return result;
    }
+   
 
    @Override
    public Date getModifiedTime(Connection connection, String id) throws DamManagerNotImplementedException {
@@ -335,9 +365,11 @@ public class CumulusManager extends DamManager {
       CumulusCollectionManager collectionManager = null;
       RecordItem recordItem = null;
       try {
-         collectionManager = helper.getOrInitCollectionManager(connection);
-         recordItem = collectionManager.getRecordToRead(new Integer(id), false);
-         result = recordItem.getDateValue(GUID.UID_REC_ASSET_MODIFICATION_DATE);
+         if (connection.getPoolSize() >= 0) {
+            collectionManager = helper.getOrInitCollectionManager(connection);
+            recordItem = collectionManager.getRecordToRead(new Integer(id), false);
+            result = recordItem.getDateValue(GUID.UID_REC_ASSET_MODIFICATION_DATE);
+         }
       } catch (Exception e) {
          e.printStackTrace();
       } finally {
@@ -686,6 +718,16 @@ public class CumulusManager extends DamManager {
       return helper.decrementFieldValue(connection, id, field, amount);
    }
 
+   @Override
+   public HashMap<String, Object> runCatalogReport(Connection connection, String username, String password) {
+      return helper.runCatalogReport(connection, username, password);      
+   }
+   
+   @Override
+   public HashMap<String, Object> runCategoryReport(Connection connection, String path, String username, String password) {
+      return helper.runCategoryReport(connection, path,username, password);      
+    }
+   
    @Override
    public boolean openConnection(Connection connection, String username, String password, Integer poolSize) throws DamManagerNotImplementedException {
       return helper.openConnection(connection, username, password, poolSize);

@@ -14,6 +14,7 @@ import org.json.JSONObject;
 public class QueryResult {
 
    public final static String JSON_TOTAL = "total";
+   public final static String JSON_COUNT = "count";
    public final static String JSON_RECORDS = "records";
    public final static String JSON_KEYWORDS = "keywords";
    public final static String JSON_PREVIEWS = "previews";
@@ -28,6 +29,7 @@ public class QueryResult {
    public final static String JSON_FILE_ISFOLDER = "ISFOLDER";
    public final static String JSON_ID = "ID";
    public final static String JSON_TABLE = "TABLE";
+   public final static String JSON_DOWNLOAD_LINK = "DOWNLOAD_LINK";
    private int total = 0;
    private int offset = 0;
    private int count = 0;
@@ -89,6 +91,9 @@ public class QueryResult {
          for (Record record : records) {
             jsonRecords.add(record.toJson());
          }
+         result.put(JSON_COUNT, records.length);
+      } else {
+         result.put(JSON_COUNT, 0);
       }
       result.put(JSON_RECORDS, jsonRecords);
       return result;
@@ -98,7 +103,7 @@ public class QueryResult {
       HashMap<String, Object> jsonData = buildJsonMap();
       return new JSONObject(jsonData);
    }
-
+   
    public JSONObject toJson(int httpStatus) {
       HashMap<String, Object> jsonData = buildJsonMap();
       jsonData.put(Common.JSON_HTTP_STATUS, httpStatus);

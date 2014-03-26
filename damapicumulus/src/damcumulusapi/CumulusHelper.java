@@ -4,7 +4,6 @@ import com.canto.cumulus.*;
 import com.canto.cumulus.constants.CombineMode;
 import com.canto.cumulus.constants.FindFlag;
 import com.canto.cumulus.exceptions.*;
-import com.canto.cumulus.fieldvalue.AssetReference;
 import com.canto.cumulus.fieldvalue.*;
 import com.canto.cumulus.usermanagement.AuthenticationManager;
 import com.canto.cumulus.usermanagement.FieldValues;
@@ -27,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.*;
+
 import org.apache.log4j.Logger;
 
 public class CumulusHelper {
@@ -122,6 +122,69 @@ public class CumulusHelper {
       }
       return result;
    }
+   
+   public HashMap<String, Object> runCatalogReport(Connection connection, String username, String password) {
+      HashMap<String, Object> result = new HashMap<>();
+      CumulusCollectionManager collectionManager = null;
+      RecordItemCollection collection = null;
+      try {
+         collectionManager = getOrInitCollectionManager(connection);
+         collection = (RecordItemCollection) collectionManager.borrowObjectToRead(RecordItemCollection.class);
+         if (collection != null) {
+            int recordCount = collection.getItemCount();
+            result.put(DamManager.REPORT_RECORD_COUNT, recordCount);
+            result.put(DamManager.REPORT_CONNECTION_NAME, connection.getName());
+            result.put(DamManager.REPORT_DATABASE_NAME, connection.getDatabase());
+         }
+      } catch (Exception e) {
+         logger.error("Problem running DAM report: '" + e.getMessage());
+         e.printStackTrace();
+      } finally {
+         if (collectionManager != null && collection != null) {
+            collectionManager.returnReadObject(collection);
+         }
+      }
+      return result;
+   }
+
+   public HashMap<String, Object> runCategoryReport(Connection connection, String path, String username, String password) {
+      HashMap<String, Object> result = new HashMap<>();
+      try {
+         int recordCount = categoryRecordCount(connection, path);
+         result.put(DamManager.REPORT_RECORD_COUNT, recordCount);
+         result.put(DamManager.REPORT_CONNECTION_NAME, connection.getName());
+         result.put(DamManager.REPORT_DATABASE_NAME, connection.getDatabase());
+         result.put(DamManager.REPORT_CATEGORY_PATH, path);
+      } catch (Exception e) {
+         logger.error("Problem running DAM report: '" + e.getMessage());
+         e.printStackTrace();
+      }
+      return result;
+   }
+   
+   public int categoryRecordCount(Connection connection, String path) {
+      int result = -1;
+      CumulusCollectionManager collectionManager = getOrInitCollectionManager(connection);
+      CategoryItemCollection collection;
+      CategoryItem rootCategory;
+      try {
+         collectionManager = getOrInitCollectionManager(connection);
+         collection = collectionManager.getAllCategoriesItemCollection();
+         if (collection != null) {
+            rootCategory = collection.getCategoryItemByID(collection.getCategoryTreeItemIDByPath(path));
+            result = rootCategory.getNumberOfAssignedRecords(EnumSet.of(FindFlag.SEARCH_CATEGORIES_BELOW));
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      } finally {
+         if (collectionManager.getOnDemand()) {
+            // make sure we free up used connection if on demand
+            collectionManager.terminate();
+         }
+      }
+      return result;
+   }
+
 
    public FileStreamer downloadAsset(Connection connection, Integer id, Integer version, String assetAction) {
       FileStreamer result = null;
@@ -161,7 +224,66 @@ public class CumulusHelper {
                }
             } else {
                result = new FileStreamer();
-               // do not set the file reference in the FileStreamer - do not want to all a caller to get a handle on this
+               // do not set the file reference in the FileStreamer - do not
+               // want to all a caller to get a handle on this
+               recordItem = collection.getRecordItemByID(id);
+               result.setName(recordItem.getStringValue(GUID.UID_REC_RECORD_NAME));
+               AssetReference assetReference = recordItem.getAssetReferenceValue(GUID.UID_REC_ASSET_REFERENCE);
+               result.setStream(assetReference.getAsset(true).openInputDataStream());
+            }
+         }
+      } catch (ItemNotFoundException | CumulusException | FieldNotFoundException | IOException | UnresolvableAssetReferenceException e) {
+         // Do nothing, caller can handle returned value
+         logger.error("Problem getting asset from cumulus to download: '" + e.getMessage());
+         e.printStackTrace();
+      } finally {
+         if (collectionManager != null && collection != null) {
+            collectionManager.returnWriteObject(collection);
+         }
+      }
+      return result;
+   }
+   
+   public FileStreamer downloadCroppedAsset(Connection connection, Integer id, Integer version, String assetAction, Integer top, Integer left, Integer width, Integer height) {
+      FileStreamer result = null;
+      CumulusCollectionManager collectionManager = null;
+      RecordItemCollection collection = null;
+      try {
+         collectionManager = getOrInitCollectionManager(connection);
+         collection = (RecordItemCollection) collectionManager.borrowObjectToRead(RecordItemCollection.class);
+         if (collection != null) {
+            RecordItem recordItem = collectionManager.getRecordItemByID(collection, id);
+            if (assetAction != null && !"".equals(assetAction)) {
+               String fileGuid = Utilities.generateGuid();
+               Path workDir = tmpDir.resolve(connection.getName() + "_" + recordItem.getID() + "_" + fileGuid);
+               while (Files.exists(workDir)) {
+                  // avoid clashes by generating new guids till we avoid a clash
+                  // - don't really expect clashes
+                  workDir = tmpDir.resolve(connection.getName() + "_" + recordItem.getID() + "_" + fileGuid);
+               }
+               Files.createDirectories(workDir); // and if someone else grabbed this one, it will fail here also
+               Asset destinationAsset = new Asset(recordItem.getCumulusSession(), workDir.toFile());
+               AssetCollection assetCollection = recordItem.doAssetAction(destinationAsset, assetAction);
+               if (assetCollection != null) {
+                  result = new FileStreamer();
+                  result.setWorkDir(workDir);
+                  Iterator<Asset> it = assetCollection.iterator();
+                  Asset downloadAsset = it.next();
+                  while (it.hasNext()) {
+                     downloadAsset = it.next();
+                  }
+                  if (downloadAsset != null) {
+                     result.setName(recordItem.getStringValue(GUID.UID_REC_RECORD_NAME));
+                     result.setGuid(fileGuid);
+                     result.setAssetAction(assetAction);
+                     result.setFile(fs.getPath(downloadAsset.getAsFile().getAbsolutePath()));
+                     result.setStream(Files.newInputStream(result.getFile()));
+                  }
+               }
+            } else {
+               result = new FileStreamer();
+               // do not set the file reference in the FileStreamer - do not
+               // want to all a caller to get a handle on this
                recordItem = collection.getRecordItemByID(id);
                result.setName(recordItem.getStringValue(GUID.UID_REC_RECORD_NAME));
                AssetReference assetReference = recordItem.getAssetReferenceValue(GUID.UID_REC_ASSET_REFERENCE);
@@ -210,8 +332,12 @@ public class CumulusHelper {
       }
       return result;
    }
-   
+
    public Category findCategory(Connection connection, Integer pathId) {
+      return findCategory(connection, pathId, true);
+   }
+
+   public Category findCategory(Connection connection, Integer pathId, boolean recursive) {
       Category result = null;
       CategoryItem rootCategory;
       CumulusCollectionManager collectionManager;
@@ -220,7 +346,7 @@ public class CumulusHelper {
          CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
          if (collection != null) {
             rootCategory = collection.getCategoryItemByID(pathId);
-            result = CumulusUtilities.processCategories(rootCategory);
+            result = CumulusUtilities.processCategories(rootCategory, recursive);
          }
       } catch (InvalidArgumentException | ItemNotFoundException | CumulusException e) {
          e.printStackTrace();
@@ -867,7 +993,7 @@ public class CumulusHelper {
                String templateUrl = baseUrl;
                switch (preview) {
                case DamManager.DOWNLOAD:
-                  templateUrl += "/" + serverPrefix + "file/" + DamManager.TEMPLATE_PARAM_CATALOG_NAME + "/get?id=" + DamManager.TEMPLATE_PARAM_ID;
+                  templateUrl += "/" + serverPrefix + "file/" + DamManager.TEMPLATE_PARAM_CATALOG_NAME + "/get/" + DamManager.TEMPLATE_PARAM_RECORD_NAME + "?id=" + DamManager.TEMPLATE_PARAM_ID;
                   fields.put(preview, templateUrl);
                   break;
                case DamManager.THUMBNAIL:
@@ -952,7 +1078,7 @@ public class CumulusHelper {
          String tableName = fieldDefinition.getLayout().getTableName() + "/" + fieldDefinition.getFieldUID().toString();
          Layout tableLayout = collectionManager.getMasterCatalog().getLayout(tableName);
          Set<GUID> tableGuids = tableLayout.getFieldUIDs();
-         DatabaseField[] columns = new DatabaseField[tableGuids.size() - 2]; // do not bother with Host and Item ids
+         DatabaseField[] columns = new DatabaseField[tableGuids.size() - 2]; // do not bother wirth Host and item Ids
          int i = 0;
          for (GUID tableGuid : tableGuids) {
             if (tableGuid.equals(GUID.UID_HOST_ITEM_ID) || tableGuid.equals(GUID.UID_ITEM_ID)) {
@@ -1063,12 +1189,14 @@ public class CumulusHelper {
                   // RecordItem recordItem = thePool.getRecordItemById(recordId,
                   // false);
                   RecordItem recordItem = queryResults.getRecord(i);
+                  String recordName = recordItem.getStringValue(GUID.UID_REC_RECORD_NAME);
                   if (recordItem != null) {
                      records[i].setConnection(connection.getName());
                      records[i].setId(String.valueOf(recordItem.getID()));
                      if (recordItem.hasValue(GUID.UID_REC_ASSET_REFERENCE)) {
                         AssetReference assetReference = recordItem.getAssetReferenceValue(GUID.UID_REC_ASSET_REFERENCE);
-                        // just ignore failures, as then parts do not exist, which is ok.
+                        // just ignore failures, as then parts do not exist,
+                        // which is ok.
                         try {
                            String aref = assetReference.getDisplayString();
                            String fileName = null;
@@ -1082,7 +1210,8 @@ public class CumulusHelper {
                                  Path ar = FileSystems.getDefault().getPath(bits[bits.length - 1]);
                                  fileName = ar.getFileName().toString();
                               } catch (InvalidPathException ipe) {
-                                 // handle problems in getting path, default to the record name
+                                 // handle problems in getting path, default to
+                                 // the record name
                                  fileName = recordItem.getStringValue(GUID.UID_REC_RECORD_NAME);
                               }
                            }
@@ -1101,11 +1230,12 @@ public class CumulusHelper {
                         try {
                            records[i].setAssetReferenceWindows(assetReference.getPart(GUID.UID_AS_WIN_FILE).getDisplayString());
                            Path ar = null;
-                           String fileName  = null;
+                           String fileName = null;
                            try {
                               ar = FileSystems.getDefault().getPath(records[i].getAssetReferenceWindows());
                            } catch (InvalidPathException ipe) {
-                              // handle problems in getting path, default to the record name
+                              // handle problems in getting path, default to the
+                              // record name
                               fileName = recordItem.getStringValue(GUID.UID_REC_RECORD_NAME);
                            }
                            if (ar != null) {
@@ -1148,6 +1278,7 @@ public class CumulusHelper {
                            continue;
                         }
                         FieldValue fieldValue = getFieldValue(recordItem, guids[f], layout, locale);
+                        fieldValue.setFieldDefinition(field);
                         fieldValue.setDataType(field.getDataType());
                         fieldValue.setValueInterpretation(field.getValueInterpretation());
                         records[i].addField(field.getName(), fieldValue);
@@ -1155,10 +1286,8 @@ public class CumulusHelper {
                      // look for keywords
                      CategoriesFieldValue categories = recordItem.getCategoriesValue();
                      if (categories != null) {
-                        Set<String> keywordSet = new HashSet<>(); // use a set
-                                                                  // to avoid
-                                                                  // duplicates
-                        AllCategoriesItemCollection allCategoriesItemCollection = collectionManager.getAllCategoriesItemCollection();
+                        Set<String> keywordSet = new HashSet<>(); // use a set to avoud duplicates
+                         AllCategoriesItemCollection allCategoriesItemCollection = collectionManager.getAllCategoriesItemCollection();
                         for (Integer categoryId : categories.getIDs()) {
                            CategoryItem categoryItem = allCategoriesItemCollection.getCategoryItemByID(categoryId);
                            // logger.info("Category tree path: " +
@@ -1186,6 +1315,7 @@ public class CumulusHelper {
                         Map<String, String> preview_links = new HashMap<>();
                         for (Map.Entry<String, String> preview : previews.entrySet()) {
                            String url = preview.getValue().replaceAll(DamManager.TEMPLATE_PARAM_CATALOG_NAME_REGEX, connection.getName());
+                           url = url.replaceAll(DamManager.TEMPLATE_PARAM_RECORD_NAME_REGEX, recordName);
                            url = url.replaceAll(DamManager.TEMPLATE_PARAM_ID_REGEX, String.valueOf(records[i].getId()));
                            url = url.replaceAll(DamManager.TEMPLATE_PARAM_NAME_REGEX, preview.getKey());
                            preview_links.put(preview.getKey(), url);
@@ -1203,8 +1333,6 @@ public class CumulusHelper {
                         }
                         records[i].setLinks(record_links);
                      }
-                  } else {
-                     logger.info("connection pool did not return record - you may need to increase your Cumulus license count");
                   }
                }
                result.setRecords(records);
@@ -1527,6 +1655,176 @@ public class CumulusHelper {
          Map<String, String> previews = getPreviews(connection, view);
          Map<String, String> links = getLinks(connection, view);
          recordItem = collectionManager.getRecordItemById(id, false);
+         Layout layout = collectionManager.getRecordLayout();
+         GUID[] guids = new GUID[fields.length];
+         for (int f = 0; f < fields.length; f++) {
+            try {
+               String guidS = fields[f].getGuid();
+               if (guidS != null && !"".equals(guidS)) {
+                  guids[f] = new GUID(guidS);
+               }
+            } catch (Exception e) {
+               // do nothing
+            }
+         }
+         if (recordItem != null) {
+            result = new Record();
+            result.setConnection(connection.getName());
+            result.setId(String.valueOf(recordItem.getID()));
+            if (recordItem.hasValue(GUID.UID_REC_ASSET_REFERENCE)) {
+               AssetReference assetReference = recordItem.getAssetReferenceValue(GUID.UID_REC_ASSET_REFERENCE);
+               // just ignore failures, as then parts do not exist, which is ok.
+               try {
+                  String aref = assetReference.getDisplayString();
+                  String fileName = null;
+                  if (aref.startsWith("Vault")) {
+                     String[] bits = aref.split(",");
+                     fileName = bits[bits.length - 1];
+                  } else {
+                     String[] bits = aref.split(":");
+                     try {
+                        // OS prefix, e.g. Windows, Mac, Unix
+                        Path ar = FileSystems.getDefault().getPath(bits[bits.length - 1]);
+                        fileName = ar.getFileName().toString();
+                     } catch (InvalidPathException ipe) {
+                        // handle problems in getting path, default to the
+                        // record name
+                        fileName = recordItem.getStringValue(GUID.UID_REC_RECORD_NAME);
+                     }
+                  }
+                  if (fileName != null && !"".equals(fileName)) {
+                     result.setFileName(fileName);
+                     if (fileName.lastIndexOf(".") > 0) {
+                        result.setExtension(fileName.substring(fileName.lastIndexOf(".")));
+                     }
+                  } else {
+                     result.setFileName("");
+                     result.setExtension("");
+                  }
+               } catch (CumulusException ce) {
+               }
+               try {
+                  result.setAssetReferenceWindows(assetReference.getPart(GUID.UID_AS_WIN_FILE).getDisplayString());
+                  Path ar = null;
+                  String fileName = null;
+                  try {
+                     ar = FileSystems.getDefault().getPath(result.getAssetReferenceWindows());
+                  } catch (InvalidPathException ipe) {
+                     // handle problems in getting path, default to the record
+                     // name
+                     fileName = recordItem.getStringValue(GUID.UID_REC_RECORD_NAME);
+                  }
+                  if (ar != null) {
+                     fileName = ar.getFileName().toString();
+                     result.setFileName(fileName);
+                     if (fileName.lastIndexOf(".") > 0) {
+                        result.setExtension(fileName.substring(fileName.lastIndexOf(".")));
+                     }
+                  }
+               } catch (CumulusException ce) {
+               }
+               try {
+                  result.setAssetReferenceMac(assetReference.getPart(GUID.UID_AS_MAC_FILE).getDisplayString());
+               } catch (CumulusException ce) {
+               }
+               try {
+                  result.setAssetReferenceUnix(assetReference.getPart(GUID.UID_AS_UNIX_FILE).getDisplayString());
+               } catch (CumulusException ce) {
+               }
+               try {
+                  result.setAssetReferenceVault(assetReference.getPart(GUID.UID_AS_VAULT).getDisplayString());
+                  // JPack vaultData = new
+                  // JPack(assetReference.getPart(GUID.UID_AS_VAULT).getBinaryData());
+                  // logger.debug(" vault asset reference: "+vaultData.getXML());
+                  // best to get via XML, but for now hack it via the
+                  // display stirng
+                  // String[] vaultBits
+                  // =result.records[i].assetReferenceVault.split(", ");
+                  // result.records[i].assetReferenceWindows =
+                  // "\\"+vaultBits[2]+"\\00000001.data";
+               } catch (CumulusException ce) {
+               }
+
+            }
+            for (int f = 0; f < fields.length; f++) {
+               DatabaseField field = fields[f];
+               if (guids[f] == null) {
+                  // return an undefined field type
+                  result.addField(field.getName(), new FieldValue());
+                  continue;
+               }
+               FieldValue fieldValue = getFieldValue(recordItem, guids[f], layout, locale);
+               fieldValue.setFieldDefinition(field);
+               fieldValue.setDataType(field.getDataType());
+               result.addField(field.getName(), fieldValue);
+            }
+            // look for keywords
+            CategoriesFieldValue categories = recordItem.getCategoriesValue();
+            if (categories != null) {
+               Set<String> keywordSet = new HashSet<>(); // use a set to avoid
+                                                         // duplicates
+               AllCategoriesItemCollection allCategoriesItemCollection = collectionManager.getAllCategoriesItemCollection();
+               for (Integer categoryId : categories.getIDs()) {
+                  CategoryItem categoryItem = allCategoriesItemCollection.getCategoryItemByID(categoryId);
+                  // logger.info("Category tree path: " +
+                  // categoryItem.getCategoryTreePath());
+                  String categoryTreePath = categoryItem.getCategoryTreePath();
+                  if (categoryTreePath.startsWith("$Keywords")) {
+                     String[] bits = categoryTreePath.split(":");
+                     for (int j = 1; j < bits.length; j++) { // ignore the first
+                                                             // one of course
+                        keywordSet.add(bits[j]);
+                     }
+                  }
+               }
+               ArrayList<Category> cumulusCategories = new ArrayList<>();
+               for (String keyword : keywordSet) {
+                  Category cumulusCategory = new Category();
+                  cumulusCategory.setName(keyword);
+                  cumulusCategories.add(cumulusCategory);
+               }
+               cumulusCategories.trimToSize();
+               result.setKeywords(cumulusCategories.toArray(new Category[0]));
+            }
+
+            // do previews
+            if (previews != null) {
+               Map<String, String> preview_links = new HashMap<>();
+               for (Map.Entry<String, String> preview : previews.entrySet()) {
+                  String url = preview.getValue().replaceAll(DamManager.TEMPLATE_PARAM_CATALOG_NAME_REGEX, connection.getName());
+                  url = url.replaceAll(DamManager.TEMPLATE_PARAM_ID_REGEX, String.valueOf(result.getId()));
+                  url = url.replaceAll(DamManager.TEMPLATE_PARAM_NAME_REGEX, preview.getKey());
+                  preview_links.put(preview.getKey(), url);
+               }
+               result.setPreviews(preview_links);
+            }
+
+            // do links
+            if (links != null) {
+               Map<String, String> record_links = new HashMap<>();
+               for (Map.Entry<String, String> link : links.entrySet()) {
+                  String url = link.getValue().replaceAll(DamManager.TEMPLATE_PARAM_CATALOG_NAME_REGEX, String.valueOf(connection.getName()));
+                  url = url.replaceAll(DamManager.TEMPLATE_PARAM_ID_REGEX, String.valueOf(result.getId()));
+                  record_links.put(link.getKey(), url);
+               }
+               result.setLinks(record_links);
+            }
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+
+   public Record getFileMetadataOld(Connection connection, Integer id, String view, Locale locale) {
+      Record result = null;
+      CumulusCollectionManager collectionManager = getOrInitCollectionManager(connection);
+      RecordItem recordItem = null;
+      try {
+         DatabaseField[] fields = getFields(connection, view);
+         Map<String, String> previews = getPreviews(connection, view);
+         Map<String, String> links = getLinks(connection, view);
+         recordItem = collectionManager.getRecordItemById(id, false);
          if (recordItem != null) {
             Layout layout = collectionManager.getRecordLayout();
             GUID[] guids = new GUID[fields.length];
@@ -1542,6 +1840,7 @@ public class CumulusHelper {
             }
             result = new Record();
             result.setId(String.valueOf(recordItem.getID()));
+            String recordName = recordItem.getStringValue(GUID.UID_REC_RECORD_NAME);
             if (recordItem.hasValue(GUID.UID_REC_ASSET_REFERENCE)) {
                AssetReference assetReference = recordItem.getAssetReferenceValue(GUID.UID_REC_ASSET_REFERENCE);
                // just ignore failures, as then parts do not exist, which is ok.
@@ -1616,6 +1915,7 @@ public class CumulusHelper {
             Map<String, String> preview_links = new HashMap<>();
             for (Map.Entry<String, String> preview : previews.entrySet()) {
                String url = preview.getValue().replaceAll(DamManager.TEMPLATE_PARAM_CATALOG_NAME_REGEX, connection.getName());
+               url = url.replaceAll(DamManager.TEMPLATE_PARAM_RECORD_NAME_REGEX, recordName);
                url = url.replaceAll(DamManager.TEMPLATE_PARAM_ID_REGEX, String.valueOf(result.getId()));
                url = url.replaceAll(DamManager.TEMPLATE_PARAM_NAME_REGEX, preview.getKey());
                preview_links.put(preview.getKey(), url);

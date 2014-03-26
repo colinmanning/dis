@@ -6,16 +6,16 @@
     <serverPrefix></serverPrefix>
     <dams>
         <dam name="Cumulus">
-            <baseUrl>http://dis.printflow2.com</baseUrl>
+            <baseUrl>http://localhost:8080/disweb</baseUrl>
             <managerClass>damcumulusapi.CumulusManager</managerClass>
             <connections>
-                <connection name="vodacom">
-                    <server>localhost</server>
+                <connection name="point">
+                    <server>point-server</server>
                     <user>cumulus</user>
-                    <password>berlinFinn14</password>
-                    <database>vodacom</database>
+                    <password>dublinMull53</password>
+                    <database>Point Print</database>
                     <readOnly>false</readOnly>
-                    <poolSize>0</poolSize>
+                    <poolSize>-1</poolSize>
                 </connection>
              </connections>
              <views>
@@ -31,22 +31,6 @@
         </dam>
     </dams>
     <databases>
-        <database name="dis-db">
-            <managerClass>com.setantamedia.fulcrum.db.impl.H2DbManager</managerClass>
-            <connections>
-                <connection name="main">
-                    <server>localhost</server>
-                    <user>sa</user>
-                    <password>otec-europe</password>
-                    <readonly>false</readonly>
-                    <database>jdbc:h2:tcp://localhost/usr/local/Cumulus_WebSolutions/apache-tomcat-7.0.26/webapps/diswebWEB-INF/db/dis-db</database>
-                    <readOnly>false</readOnly>
-                    <poolSize>0</poolSize>
-                </connection>
-            </connections>
-            <views>
-            </views>
-        </database>
     </databases>
     <queries>
         <query name="cumulus-query-1">

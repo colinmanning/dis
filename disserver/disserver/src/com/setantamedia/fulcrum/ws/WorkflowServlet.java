@@ -59,8 +59,11 @@ public class WorkflowServlet extends BaseServlet {
             tmpFolder = (Path) context.getAttribute(FulcrumServletContextListener.TMP_FOLDER);
             server = (AdvancedServer) context.getAttribute(FulcrumServletContextListener.MAIN_SERVER);
             databases = server.getDatabases();
-            disDbManager = databases.get(DIS_DB_NAME).getManager();
+            if (databases.containsKey(DIS_DB_NAME)) {
+               disDbManager = databases.get(DIS_DB_NAME).getManager();
+            }
         } catch (Exception e) {
+            logger.info("Failed to initialise workflow servlet, maybe no database configured");
             e.printStackTrace();
         }
     }
@@ -120,7 +123,7 @@ public class WorkflowServlet extends BaseServlet {
                             if (session == null || session.getAttribute(DbManager.DB_SESSION_DATA) == null) {
                                 String username = request.getParameter(PARAMETER_USERNAME);
                                 String password = request.getParameter(PARAMETER_PASSWORD);
-                                if (username != null && password != null) {
+                                if (username != null && password != null && disDbManager != null) {
                                     sessionData = disDbManager.login(DIS_DB_NAME, DIS_DB_CONNECTION_NAME, username, password);
                                 }
                                 if (sessionData == null) {

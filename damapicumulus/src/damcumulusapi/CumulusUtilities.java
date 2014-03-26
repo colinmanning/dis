@@ -378,12 +378,13 @@ public class CumulusUtilities {
    public static Object getCumulusFieldValue(FieldValue v) {
       return getCumulusFieldValue(v, false);
    }
-
-   public static Category processCategories(CategoryItem rootCategory) {
+   
+   public static Category processCategories(CategoryItem rootCategory, boolean recursive) {
       Category result = new Category();
       result.setId(rootCategory.getID());
       result.setName(rootCategory.getStringValue(GUID.UID_CAT_NAME));
-      if (rootCategory.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
+      result.setHasChildren(rootCategory.getHasSubCategories());
+            if (rootCategory.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
          result.setCustomOrder(rootCategory.getIntValue(GUID.UID_CAT_CUSTOM_ORDER));
       }
       CategoryItem childItem = rootCategory.getFirstChildCategoryItem();
@@ -391,15 +392,20 @@ public class CumulusUtilities {
          Category category = new Category();
          category.setId(childItem.getID());
          category.setName(childItem.getStringValue(GUID.UID_CAT_NAME));
+         category.setHasChildren(childItem.getHasSubCategories());
          if (childItem.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
             category.setCustomOrder(childItem.getIntValue(GUID.UID_CAT_CUSTOM_ORDER));
          }
-         result.addSubCategory(processCategories(childItem));
+         if (recursive) {
+            result.addSubCategory(processCategories(childItem, recursive));
+         } else {
+            result.addSubCategory(category);
+         }
          childItem = childItem.getNextSiblingCategoryItem();
       }
       return result;
    }
-
+  
    public static Category findCategory(CategoryItemCollection collection, int id) {
       Category result = new Category();
       CategoryItem category = null;

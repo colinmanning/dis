@@ -80,6 +80,8 @@ public class DataServlet extends BaseServlet {
             if (sessionData != null) {
                 user = sessionData.getUser();
             }
+            
+            callback = request.getParameter(PARAMETER_CALLBACK);
 
             String itemName = request.getParameter(PARAMETER_ITEM);
             if (operationName.equals(Operations.create.toString())) {
@@ -114,7 +116,11 @@ public class DataServlet extends BaseServlet {
                 Record record = dam.manager.getFileMetadata(dam.connections.get(connectionName), id, viewName, Utilities.getLocale());
                 response.setCharacterEncoding(UTF_8);
                 response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write(record.toJson().toString());
+                String j = record.toJson().toString();
+                if (callback != null) {
+                   j = callback + "(" + j + ")";
+                }
+                response.getWriter().write(j);
                 response.getWriter().flush();
                 response.getWriter().close();
                 status = HttpServletResponse.SC_OK;

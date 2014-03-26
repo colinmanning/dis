@@ -28,8 +28,8 @@ public class DamManager {
     public final static String TEMPLATE_PARAM_ID_REGEX = "\\$\\{id\\}";
     public final static String TEMPLATE_PARAM_NAME = "${name}";
     public final static String TEMPLATE_PARAM_NAME_REGEX = "\\$\\{name\\}";
-    public final static String TEMPLATE_RECORD_NAME = "${recordName}";
-    public final static String TEMPLATE_RECORD_NAME_REGEX = "\\$\\{recordName\\}";
+    public final static String TEMPLATE_PARAM_RECORD_NAME = "${recordname}";
+    public final static String TEMPLATE_PARAM_RECORD_NAME_REGEX = "\\$\\{recordname\\}";
     public final static String THUMBNAIL = "thumbnail";
     public final static String DOWNLOAD = "download";
     public final static String ALL_FIELDS = "all";
@@ -42,6 +42,11 @@ public class DamManager {
     public final static String MIME_TYPE_PDF = "application/pdf";
     public final static String MIME_TYPE_TEXT = "text/plain";
     public final static String MIME_TYPE_JSON= "application/json;charset=UTF-8";
+    
+    public final static String REPORT_CONNECTION_NAME = "connection_name";
+    public final static String REPORT_DATABASE_NAME = "database_name";
+    public final static String REPORT_RECORD_COUNT = "record_count";
+    public final static String REPORT_CATEGORY_PATH = "category_path";
     
     public String FIELD_TITLE = "Title";
     public String FIELD_DESCRIPTION = "Description";
@@ -91,6 +96,14 @@ public class DamManager {
 
     public String getServerPrefix() {
         return serverPrefix;
+    }
+    
+    public HashMap<String, Object> runCatalogReport(Connection connection, String username, String password) throws DamManagerNotImplementedException {
+       throw new DamManagerNotImplementedException();       
+    }
+    
+    public HashMap<String, Object> runCategoryReport(Connection connection, String path, String username, String password) throws DamManagerNotImplementedException {
+       throw new DamManagerNotImplementedException();       
     }
     
     public boolean openConnection(Connection connection, String username, String password, Integer poolSize) throws DamManagerNotImplementedException {
@@ -160,6 +173,11 @@ public class DamManager {
     public FileStreamer getFile(Connection connection, User user, String id, Integer version, String actionName) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();
     }
+    
+    public FileStreamer getCroppedFile(Connection connection, User user, String id, Integer version, String actionName,
+          Integer top, Integer left, Integer width, Integer height) throws DamManagerNotImplementedException {
+       throw new DamManagerNotImplementedException();
+    }
 
     public FileStreamer getFile(Connection connection, User user, String fieldKey, String keyValue, Integer version, String actionName) throws DamManagerNotImplementedException {
        throw new DamManagerNotImplementedException();
@@ -225,8 +243,20 @@ public class DamManager {
     }
 
     public Category findCategories(Connection connection, String path) throws DamManagerNotImplementedException {
-        throw new DamManagerNotImplementedException();
+        return findCategories(connection, path, true);
     }
+
+    public Category findCategories(Connection connection, String path, boolean recursive) throws DamManagerNotImplementedException {
+       throw new DamManagerNotImplementedException();
+   }
+
+    public Category findCategories(Connection connection, Integer id) throws DamManagerNotImplementedException {
+       return findCategories(connection, id, true);
+    }
+    
+    public Category findCategories(Connection connection, Integer id, boolean recursive) throws DamManagerNotImplementedException {
+       throw new DamManagerNotImplementedException();
+   }
 
     public DatabaseField[] getFields(Connection connection) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();

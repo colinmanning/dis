@@ -2,6 +2,7 @@ package com.setantamedia.fulcrum.ws;
 
 import com.setantamedia.fulcrum.common.SearchDescriptor;
 import com.setantamedia.fulcrum.common.SearchDescriptor.PreviewFormats;
+import com.setantamedia.fulcrum.common.Connection;
 import com.setantamedia.fulcrum.common.SortRule;
 import com.setantamedia.fulcrum.common.Utilities;
 import com.setantamedia.fulcrum.config.Preview;
@@ -86,7 +87,8 @@ public class PreviewServlet extends BaseServlet {
          force = (request.getParameter(PARAMETER_FORCE) != null);
 
          if (operationName.equals(Operations.fetch.toString())) {
-            String previewName = DEFAULT_NAME;
+            //String previewName = DEFAULT_NAME;
+            String previewName = null;
             String filter = request.getParameter(PARAMETER_FILTER);
             if (filter == null) {
                filter = request.getParameter(PARAMETER_QUERY);
@@ -126,7 +128,35 @@ public class PreviewServlet extends BaseServlet {
             }
 
             byte[] preview = null;
-            if (NAME_THUMBNAIL.equals(previewName)) {
+            if (previewName == null) {
+               // make a name from the parameters
+               previewName = "";
+               if (maxSize != null) {
+                  previewName += "_" + PARAMETER_MAXSIZE + "_" + maxSize;
+               }
+               if (size != null) {
+                  previewName += "_" + PARAMETER_SIZE + "_" + size;
+               }
+               if (top != null) {
+                  previewName += "_" + PARAMETER_TOP + "_" + top;
+               }
+               if (left != null) {
+                  previewName += "_" + PARAMETER_LEFT + "_" + left;
+               }
+               if (width != null) {
+                  previewName += "_" + PARAMETER_WIDTH + "_" + width;
+               }
+               if (height != null) {
+                  previewName += "_" + PARAMETER_HEIGHT + "_" + height;
+               }
+               if (rotate != null) {
+                  previewName += "_" + PARAMETER_ROTATE + "_" + rotate;
+               }
+               if ("".equals(previewName)) {
+                  previewName = DEFAULT_NAME;
+               }
+             }
+             if (NAME_THUMBNAIL.equals(previewName)) {
                if (maxSize == null) {
                   maxSize = -1;
                }
@@ -138,6 +168,7 @@ public class PreviewServlet extends BaseServlet {
                if (clearCache) {
                   previewCache.clearPathForRecord(cachePath, id, previewName);
                } else {
+                  Connection conn = dam.connections.get(connectionName);
                   logger.debug("about to make cache file for asset - path, id, previewName: " + cachePath + ", " + id + ", " + previewName);
                   cacheFile = previewCache.makeCacheFile(cachePath, id, previewName, force);
                   if (Files.exists(cacheFile)) {
@@ -145,10 +176,15 @@ public class PreviewServlet extends BaseServlet {
                      // preview was created
                      Boolean assetChanged = false;
                      if (!force) {
-                        BasicFileAttributes attributes = Files.readAttributes(cacheFile, BasicFileAttributes.class);
-                        FileTime previewModificationTime = attributes.lastModifiedTime();
-                        Date assetModificationTime = dam.manager.getModifiedTime(dam.connections.get(connectionName), id);
-                        assetChanged = (assetModificationTime.getTime() > previewModificationTime.toMillis()) ? true : false;
+                        if (conn != null && conn.getPoolSize() > 0) {
+                           // do not check modified time for on demand connections, as way to expensive
+                           BasicFileAttributes attributes = Files.readAttributes(cacheFile, BasicFileAttributes.class);
+                           FileTime previewModificationTime = attributes.lastModifiedTime();
+                           Date assetModificationTime = dam.manager.getModifiedTime(conn, id);
+                           if (assetModificationTime != null) {
+                              assetChanged = (assetModificationTime.getTime() > previewModificationTime.toMillis()) ? true : false;
+                           }
+                        }
                      }
                      if (!force && !assetChanged) {
                         preview = previewCache.getPreviewData(cacheFile);
@@ -158,7 +194,7 @@ public class PreviewServlet extends BaseServlet {
                   if (!found) {
                      if (id != null) {
                         if (NAME_FULL.equals(previewName)) {
-                           preview = dam.manager.previewFile(dam.connections.get(connectionName), id, cacheFile, maxSize, actionName);
+                           preview = dam.manager.previewFile(conn, id, cacheFile, maxSize, actionName);
                         } else {
                            List<Preview> previewTypes = fulcrumConfig.getPreviews().getPreview();
                            Preview namedPreview = null;
@@ -182,7 +218,7 @@ public class PreviewServlet extends BaseServlet {
                               namedPreview.setFormat(format);
                            }
                            logger.debug("generasting preview from PreviewServlet for connection: " + connectionName);
-                           preview = dam.manager.previewFile(dam.connections.get(connectionName), id, namedPreview, cacheFile, actionName);
+                           preview = dam.manager.previewFile(conn, id, namedPreview, cacheFile, actionName);
                         }
                      }
                   }

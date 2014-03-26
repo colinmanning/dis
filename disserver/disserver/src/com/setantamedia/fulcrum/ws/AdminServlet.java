@@ -56,7 +56,7 @@ public class AdminServlet extends BaseServlet {
     private enum Operations {
 
         terminate, describe, describequeries, startsession, endsession, activateuser, getuser, singlesignon, updateuser,
-        createproject, openconnection, closeconnection
+        createproject, openconnection, closeconnection, catalogreport, categoryreport
     }
 
     @Override
@@ -66,7 +66,9 @@ public class AdminServlet extends BaseServlet {
         server = (CoreServer) context.getAttribute(FulcrumServletContextListener.MAIN_SERVER);
         if (server instanceof AdvancedServer) {
             databases = ((AdvancedServer) server).getDatabases();
-            disDbManager = databases.get(DIS_DB_NAME).getManager();
+            if (databases.containsKey(DIS_DB_NAME)) {
+               disDbManager = databases.get(DIS_DB_NAME).getManager();
+            }
         }
     }
 
@@ -104,7 +106,7 @@ public class AdminServlet extends BaseServlet {
              * session.getAttribute(DbManager.DB_SESSION_DATA); }
              */
 
-            if (operationName.equals(Operations.openconnection.toString())) {
+            if (operationName.equals(Operations.openconnection.toString()) && disDbManager != null) {
                 // we ned to determine how to do authentication - use the DIS database
                 DbSessionData sessionData = null;
                 HttpSession session = request.getSession(false);
@@ -130,7 +132,7 @@ public class AdminServlet extends BaseServlet {
                 } else {
                     status = HttpServletResponse.SC_EXPECTATION_FAILED;
                 }
-            } else if (operationName.equals(Operations.closeconnection.toString())) {
+            } else if (operationName.equals(Operations.closeconnection.toString()) && disDbManager != null) {
                 // we ned to determine how to do authentication - use the DIS database 
                 DbSessionData sessionData = null;
                 HttpSession session = request.getSession(false);
@@ -194,7 +196,26 @@ public class AdminServlet extends BaseServlet {
                     response.getWriter().close();
                     status = HttpServletResponse.SC_OK;
                 }
-            } else if (operationName.equals(Operations.startsession.toString())) {
+            } else if (operationName.equals(Operations.catalogreport.toString())) {
+               response.setCharacterEncoding(UTF_8);
+               response.setContentType("application/json;charset=UTF-8");
+               String username = (request.getParameter(PARAMETER_USERNAME) != null) ? request.getParameter(PARAMETER_USERNAME) : null;
+               String password = (request.getParameter(PARAMETER_PASSWORD) != null) ? request.getParameter(PARAMETER_PASSWORD) : null;
+               HashMap<String, Object> report = damCatalogReport(dam.connections.get(connectionName), username, password);
+               response.getWriter().write((new JSONObject(report)).toString());
+               response.getWriter().flush();
+               response.getWriter().close();
+            } else if (operationName.equals(Operations.categoryreport.toString())) {
+               response.setCharacterEncoding(UTF_8);
+               response.setContentType("application/json;charset=UTF-8");
+               String path = (request.getParameter(PARAMETER_PATH) != null) ? request.getParameter(PARAMETER_PATH) : null;
+               String username = (request.getParameter(PARAMETER_USERNAME) != null) ? request.getParameter(PARAMETER_USERNAME) : null;
+               String password = (request.getParameter(PARAMETER_PASSWORD) != null) ? request.getParameter(PARAMETER_PASSWORD) : null;
+               HashMap<String, Object> report = damCategoryReport(dam.connections.get(connectionName), path, username, password);
+               response.getWriter().write((new JSONObject(report)).toString());
+               response.getWriter().flush();
+               response.getWriter().close();
+           } else if (operationName.equals(Operations.startsession.toString())) {
                 boolean authenticate = false;
                 String username = (request.getParameter(PARAMETER_USERNAME) != null) ? request.getParameter(PARAMETER_USERNAME) : null;
                 String password = (request.getParameter(PARAMETER_PASSWORD) != null) ? request.getParameter(PARAMETER_PASSWORD) : null;
@@ -391,6 +412,14 @@ public class AdminServlet extends BaseServlet {
         return result;
     }
 
+    private HashMap<String, Object> damCatalogReport(Connection connection, String username, String password) throws Exception {
+       return dam.manager.runCatalogReport(connection, username, password);
+    }
+    
+    private HashMap<String, Object> damCategoryReport(Connection connection, String path, String username, String password) throws Exception {
+       return dam.manager.runCategoryReport(connection, path, username, password);
+    }
+    
     private HashMap<String, Object> describeAsJson(HttpServletResponse response, Connection connection, String viewName) throws Exception {
         HashMap<String, Object> result = null;
         DatabaseField[] fields = dam.manager.getFields(connection, viewName);

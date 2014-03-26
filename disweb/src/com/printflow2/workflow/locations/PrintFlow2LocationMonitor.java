@@ -21,7 +21,6 @@ public class PrintFlow2LocationMonitor  extends FileProcessor {
    public final static String DEFAULT_ASSET_HANDLING_SET = "Standard";
    private String categoryRoot = DEFAULT_CATEGORY;
    private String assetHandlingSet = DEFAULT_ASSET_HANDLING_SET;
-   private Category fileCategory = null;
    private Boolean deleteFile = false;
 
    @Override
@@ -37,7 +36,7 @@ public class PrintFlow2LocationMonitor  extends FileProcessor {
          if (params.get(PARAM_DELETE_FILE) != null) {
             deleteFile = Boolean.valueOf(params.get(PARAM_ASSET_HANDLING_SET));
          }
-         fileCategory = dam.manager.createCategory(dam.getConnection(damConnectionName), null, categoryRoot);
+         dam.manager.createCategory(dam.getConnection(damConnectionName), null, categoryRoot);
       } catch (Exception e) {
          e.printStackTrace();
       }

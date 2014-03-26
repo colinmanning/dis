@@ -31,6 +31,8 @@ public abstract class BaseServlet extends HttpServlet {
    public final static String FORMAT_JPG = "jpg";
    public final static String FORMAT_PNG = "png";
    public final static String FULCRUM_PREFIX = "fulcrum_";
+   public final static String PARAMETER_PAGE = "page";
+   public final static String PARAMETER_PAGE_SIZE = "pageSize";
    public final static String PARAMETER_USERNAME = "username";
    public final static String PARAMETER_PASSWORD = "password";
    public final static String PARAMETER_CONNECTION = "connection";
@@ -69,7 +71,6 @@ public abstract class BaseServlet extends HttpServlet {
    public final static String PARAMETER_FLAVOUR = "flavour";
    public final static String PARAMETER_VERSION = "version";
    public final static String PARAMETER_FIXED = "fixed";
-   public final static String PARAMETER_PAGE = "page";
    public final static String PARAMETER_FORCE = "force";
    public final static String PARAMETER_CLEARCACHE = "clearcache";
    public final static String PARAMETER_MAXSIZE = "maxsize";
@@ -100,6 +101,7 @@ public abstract class BaseServlet extends HttpServlet {
    public final static String PARAMETER_FIELD_KEY = "fieldkey";
    public final static String PARAMETER_FIELD_VALUE = "fieldvalue";
    public final static String PARAM_PROJECTNAME = "projectname";
+   public final static String PARAMETER_CALLBACK = "callback";
    public final static String DIRECTION_ASCENDING = "ascending";
    public final static String DIRECTION_DESCENDING = "descending";
    public final static String FORMAT_CSHARP = "csharp";

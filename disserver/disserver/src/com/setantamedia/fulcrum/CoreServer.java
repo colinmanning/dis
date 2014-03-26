@@ -26,7 +26,7 @@ import org.apache.log4j.xml.DOMConfigurator;
 public class CoreServer {
 
    private final static Logger logger = Logger.getLogger(CoreServer.class);
-   public final static String VERSION_NUMBER = "3.2.0.0";
+   public final static String VERSION_NUMBER = "3.2.0.1";
    public final static String CONFIG_FILE = "dis-config.xml";
    public final static String LOG4J_CONFIG_FILE = "dis-log4j.xml";
    protected FulcrumConfig fulcrumConfig = null;
