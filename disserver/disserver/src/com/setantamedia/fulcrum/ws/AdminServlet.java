@@ -107,7 +107,7 @@ public class AdminServlet extends BaseServlet {
              */
 
             if (operationName.equals(Operations.openconnection.toString()) && disDbManager != null) {
-                // we ned to determine how to do authentication - use the DIS database
+                // we need to determine how to do authentication - use the DIS database
                 DbSessionData sessionData = null;
                 HttpSession session = request.getSession(false);
                 if (session == null || session.getAttribute(DbManager.DB_SESSION_DATA) == null) {
