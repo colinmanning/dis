@@ -1,7 +1,11 @@
 package com.setantamedia.fulcrum.common;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.TimeZone;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,9 +19,15 @@ public class FieldUtilities {
 	public final static String JSON_PICTURE_VALUE = "<picture>";
 
 	public final static String NULL_VALUE = "null";
+	public final static DateFormat ISO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+	public final static TimeZone UTC_TIME_ZONE = TimeZone.getTimeZone("UTC");
 
 	public FieldUtilities() {
-
+		ISO_DATE_FORMAT.setTimeZone(UTC_TIME_ZONE);
+	}
+	
+	public static String getISODateString(Date dt) {
+		return ISO_DATE_FORMAT.format(dt);
 	}
 
 	public static Object getFieldValue(FieldValue v, boolean json) {
@@ -53,8 +63,9 @@ public class FieldUtilities {
 				result = (json) ? JSON_PICTURE_VALUE : v.getByteArrayValue();
 				break;
 			case FieldTypeConstants.TypeDate:
-				result = v.getDateTimeValue();
-				result = (json) ? "/Date(" + v.getDateTimeValue().getValue() + ")/" : v.getDateTimeValue().getValue();
+				//result = v.getDateTimeValue();
+				//result = (json) ? "/Date(" + v.getDateTimeValue().getValue() + ")/" : v.getDateTimeValue().getValue();
+				result = (json) ? getISODateString(v.getDateTimeValue().getDateValue()) : v.getDateTimeValue().getValue();
 				break;
 			case FieldTypeConstants.TypeBinary:
 				result = (json) ? JSON_BINARY_VALUE : v.getByteArrayValue();
@@ -241,7 +252,9 @@ public class FieldUtilities {
 		HashMap<String, Object> v = new HashMap<String, Object>();
 		v.put("Value", dateTime.getValue());
 		// this is the "sort of standard" JSON date format
-		v.put("DisplayValue", "\\/Date(" + dateTime.getValue() + ")\\/");
+		//v.put("DisplayValue", "\\/Date(" + dateTime.getValue() + ")\\/");
+		v.put("DisplayValue", getISODateString(dateTime.getDateValue()));
+
 		return new JSONObject(v);
 	}
 

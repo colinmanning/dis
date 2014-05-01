@@ -374,7 +374,7 @@ public class H2DbManager implements DbManager {
         return result;
     }
 
-    private String streamClobToString(java.sql.Clob clob) throws Exception {
+    public String streamClobToString(java.sql.Clob clob) throws Exception {
         if (clob == null) {
             return "";
         }

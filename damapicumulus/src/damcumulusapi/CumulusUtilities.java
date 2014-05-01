@@ -6,7 +6,6 @@ import com.canto.cumulus.exceptions.ItemNotFoundException;
 import com.setantamedia.fulcrum.common.*;
 import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.Record;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.FileSystems;
@@ -357,8 +356,7 @@ public class CumulusUtilities {
             if (assetCollection != null) {
                Iterator<Asset> it = assetCollection.iterator();
                if (it.hasNext()) {
-                  Asset previewAsset = it.next();
-                  Path tmpFile = FileSystems.getDefault().getPath(previewAsset.getAsFile().getAbsolutePath());
+                  //Asset previewAsset = it.next();
                   try (OutputStream fos = Files.newOutputStream(file)) {
                      fos.write(data);
                      fos.flush();
@@ -380,12 +378,13 @@ public class CumulusUtilities {
    public static Object getCumulusFieldValue(FieldValue v) {
       return getCumulusFieldValue(v, false);
    }
-
-   public static Category processCategories(CategoryItem rootCategory) {
+   
+   public static Category processCategories(CategoryItem rootCategory, boolean recursive) {
       Category result = new Category();
       result.setId(rootCategory.getID());
       result.setName(rootCategory.getStringValue(GUID.UID_CAT_NAME));
-      if (rootCategory.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
+      result.setHasChildren(rootCategory.getHasSubCategories());
+            if (rootCategory.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
          result.setCustomOrder(rootCategory.getIntValue(GUID.UID_CAT_CUSTOM_ORDER));
       }
       CategoryItem childItem = rootCategory.getFirstChildCategoryItem();
@@ -393,15 +392,20 @@ public class CumulusUtilities {
          Category category = new Category();
          category.setId(childItem.getID());
          category.setName(childItem.getStringValue(GUID.UID_CAT_NAME));
+         category.setHasChildren(childItem.getHasSubCategories());
          if (childItem.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
             category.setCustomOrder(childItem.getIntValue(GUID.UID_CAT_CUSTOM_ORDER));
          }
-         result.addSubCategory(processCategories(childItem));
+         if (recursive) {
+            result.addSubCategory(processCategories(childItem, recursive));
+         } else {
+            result.addSubCategory(category);
+         }
          childItem = childItem.getNextSiblingCategoryItem();
       }
       return result;
    }
-
+  
    public static Category findCategory(CategoryItemCollection collection, int id) {
       Category result = new Category();
       CategoryItem category = null;

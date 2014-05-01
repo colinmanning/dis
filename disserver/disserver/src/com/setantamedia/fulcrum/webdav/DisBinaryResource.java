@@ -28,7 +28,6 @@ import java.util.Map;
  */
 public class DisBinaryResource extends DisFileResource implements GetableResource, ReplaceableResource {
 
-   private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DisBinaryResource.class);
    private byte[] bytes;
    private String contentType;
 

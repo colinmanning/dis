@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import javax.xml.namespace.QName;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -25,7 +24,6 @@ import org.apache.log4j.Logger;
  */
 public class DisFileResource implements GetableResource, PropFindableResource, MultiNamespaceCustomPropertyResource {
 
-   private final static Logger logger = Logger.getLogger(DisFileResource.class);
    public final static String NS_DIS_WEBDAV = "com.setantamedia.fulcrum.webdav";
    protected Dam dam = null;
    protected String connectionName = null;
@@ -37,7 +35,6 @@ public class DisFileResource implements GetableResource, PropFindableResource, M
    protected Map<String, Object> customProperties = new HashMap<>();
 
    public DisFileResource(DisFolderResource folder, String baseUrl, Dam dam, String connectionName, Record record) {
-      Long v = record.getLongField("Asset Data Size (Long)");
       this.folder = folder;
       this.dam = dam;
       this.connectionName = connectionName;

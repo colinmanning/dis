@@ -168,7 +168,7 @@ public class CumulusManager extends DamManager {
             // extra conditions specified on top of the quick search
             query += " && (" + filter + ")";
          }
-         logger.debug("Query is: '" + query + "'");
+         // logger.debug("Query is: '" + query + "'");
          result = helper.findRecords(connection, query, searchDescriptor);
       } catch (Exception e) {
          e.printStackTrace();
@@ -193,6 +193,37 @@ public class CumulusManager extends DamManager {
       FileStreamer result = null;
       try {
          result = helper.downloadAsset(connection, new Integer(id), version, actionName);
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+   
+   public FileStreamer getCroppedFile(Connection connection, User user, String id, Integer version, String actionName,
+         Integer top, Integer left, Integer width, Integer height) throws DamManagerNotImplementedException {
+      FileStreamer result = null;
+      try {
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+
+
+   public FileStreamer getFile(Connection connection, User user, String fieldKey, String fieldValue, Integer version, String actionName) throws DamManagerNotImplementedException {
+      FileStreamer result = null;
+      try {
+         String id = null;
+         SearchDescriptor sd = new SearchDescriptor();
+         String query = "\"" + fieldKey + "\" == \"" + fieldValue + "\"";
+         QueryResult qr = helper.findRecords(connection, query, sd);
+         if (qr != null && qr.getRecords().length > 0) {
+            // we only support single file download for now, so grab the first
+            // one only
+            id = qr.getRecords()[0].getId();
+            result = helper.downloadAsset(connection, new Integer(id), version, actionName);
+         }
+
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -236,7 +267,11 @@ public class CumulusManager extends DamManager {
          e.printStackTrace();
       } finally {
          if (catalogingListener != null) {
-            collection.removeCatalogingListener(catalogingListener);
+            try {
+               collection.removeCatalogingListener(catalogingListener);
+            } catch (Exception cle) {
+               // do nothing
+            }
          }
          collectionManager.returnWriteObject(collection);
       }
@@ -273,12 +308,40 @@ public class CumulusManager extends DamManager {
    }
 
    @Override
+   public Folder createFolder(Connection connection, User user, Integer pathId) {
+      Folder result;
+      Category folderCategory = helper.findCategory(connection, pathId);
+      result = new Folder();
+      result.setId(String.valueOf(folderCategory.getId()));
+      result.setName(folderCategory.getName());
+      return result;
+   }
+
+   @Override
    public Category createSubCategory(Connection connection, User user, Integer parentId, String path) {
       return helper.createSubCategory(connection, parentId, path);
    }
 
    @Override
-   public Category findCategories(Connection connection, String path) {
+   public Category findCategories(Connection connection, Integer id, boolean recursive) {
+      Category result = null;
+      CategoryItem rootCategory;
+      CumulusCollectionManager collectionManager;
+      try {
+         collectionManager = helper.getOrInitCollectionManager(connection);
+         CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
+         if (collection != null) {
+            rootCategory = collection.getCategoryItemByID(id);
+            result = CumulusUtilities.processCategories(rootCategory, recursive);
+         }
+      } catch (InvalidArgumentException | ItemNotFoundException | CumulusException e) {
+         e.printStackTrace();
+      }
+      return result;
+   }
+   
+   @Override
+   public Category findCategories(Connection connection, String path, boolean recursive) {
       Category result = null;
       CategoryItem rootCategory;
       CumulusCollectionManager collectionManager;
@@ -287,13 +350,14 @@ public class CumulusManager extends DamManager {
          CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
          if (collection != null) {
             rootCategory = collection.getCategoryItemByID(collection.getCategoryTreeItemIDByPath(path));
-            result = CumulusUtilities.processCategories(rootCategory);
+            result = CumulusUtilities.processCategories(rootCategory, recursive);
          }
       } catch (InvalidArgumentException | ItemNotFoundException | CumulusException e) {
          e.printStackTrace();
       }
       return result;
    }
+   
 
    @Override
    public Date getModifiedTime(Connection connection, String id) throws DamManagerNotImplementedException {
@@ -301,9 +365,11 @@ public class CumulusManager extends DamManager {
       CumulusCollectionManager collectionManager = null;
       RecordItem recordItem = null;
       try {
-         collectionManager = helper.getOrInitCollectionManager(connection);
-         recordItem = collectionManager.getRecordToRead(new Integer(id), false);
-         result = recordItem.getDateValue(GUID.UID_REC_ASSET_MODIFICATION_DATE);
+         if (connection.getPoolSize() >= 0) {
+            collectionManager = helper.getOrInitCollectionManager(connection);
+            recordItem = collectionManager.getRecordToRead(new Integer(id), false);
+            result = recordItem.getDateValue(GUID.UID_REC_ASSET_MODIFICATION_DATE);
+         }
       } catch (Exception e) {
          e.printStackTrace();
       } finally {
@@ -418,14 +484,17 @@ public class CumulusManager extends DamManager {
              * actionName, tmpDir); }
              */
 
-            logger.debug("about to do preview - file is: " + file.toString());
+            // logger.debug("about to do preview - file is: " +
+            // file.toString());
             if (FORMAT_PNG.equalsIgnoreCase(format)) {
                // may be transparent
-               logger.debug("about to generate PNG preview file: " + file.toString());
+               // logger.debug("about to generate PNG preview file: " +
+               // file.toString());
                ImagingPixmap.ColorSpace colorSpace = pixmap.getColorSpace();
                pixmap.save(file.toFile(), ImagingPixmap.Format.PNG, colorSpace.equals(ImagingPixmap.ColorSpace.RGBA) ? colorSpace : ImagingPixmap.ColorSpace.RGB, ImagingPixmap.Compression.FLATE, cl, false, 0);
             } else {
-               logger.debug("about to generate JPG  preview file: " + file.toString());
+               // logger.debug("about to generate JPG  preview file: " +
+               // file.toString());
                pixmap.save(file.toFile(), ImagingPixmap.Format.JPEG, ImagingPixmap.ColorSpace.RGB, ImagingPixmap.Compression.JPEG, cl, false, 0);
             }
          } catch (Exception ed) {
@@ -441,7 +510,10 @@ public class CumulusManager extends DamManager {
       } finally {
          if (collectionManager != null && recordItem != null) {
             collectionManager.releaseReadRecordItem(recordItem);
-         }         
+         }
+         if (collectionManager != null && collection != null) {
+            collectionManager.returnReadObject(collection);
+         }
       }
       return result;
    }
@@ -646,6 +718,16 @@ public class CumulusManager extends DamManager {
       return helper.decrementFieldValue(connection, id, field, amount);
    }
 
+   @Override
+   public HashMap<String, Object> runCatalogReport(Connection connection, String username, String password) {
+      return helper.runCatalogReport(connection, username, password);      
+   }
+   
+   @Override
+   public HashMap<String, Object> runCategoryReport(Connection connection, String path, String username, String password) {
+      return helper.runCategoryReport(connection, path,username, password);      
+    }
+   
    @Override
    public boolean openConnection(Connection connection, String username, String password, Integer poolSize) throws DamManagerNotImplementedException {
       return helper.openConnection(connection, username, password, poolSize);

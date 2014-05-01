@@ -74,6 +74,8 @@ public class SearchServlet extends BaseServlet {
             } else {
                 sessionData = (Session) session.getAttribute(Common.FULCRUM_SESSION_DATA);
             }
+            
+            callback = request.getParameter(PARAMETER_CALLBACK);
 
             if (operationName.equals(Operations.query.toString())) {
                 String query = request.getParameter(PARAMETER_QUERY);
@@ -97,11 +99,18 @@ public class SearchServlet extends BaseServlet {
                 }
                 SearchDescriptor sd = new SearchDescriptor();
                 sd.setViewName(request.getParameter(PARAMETER_VIEW));
-                if (request.getParameter(PARAMETER_OFFSET) != null) {
-                    sd.setOffset(new Integer(request.getParameter(PARAMETER_OFFSET)));
-                }
-                if (request.getParameter(PARAMETER_COUNT) != null) {
-                    sd.setCount(new Integer(request.getParameter(PARAMETER_COUNT)));
+                if (request.getParameter(PARAMETER_PAGE) != null && request.getParameter(PARAMETER_PAGE_SIZE) != null) {
+                   int ps = new Integer(request.getParameter(PARAMETER_PAGE_SIZE));
+                   int p = new Integer(request.getParameter(PARAMETER_PAGE));
+                   sd.setOffset((p-1) * ps);
+                   sd.setCount(ps);
+                } else {
+                   if (request.getParameter(PARAMETER_OFFSET) != null) {
+                       sd.setOffset(new Integer(request.getParameter(PARAMETER_OFFSET)));
+                   }
+                   if (request.getParameter(PARAMETER_COUNT) != null) {
+                       sd.setCount(new Integer(request.getParameter(PARAMETER_COUNT)));
+                   }
                 }
                 if (request.getParameter(PARAMETER_FILTER) != null) {
                     sd.setFilter(request.getParameter(PARAMETER_FILTER));
@@ -127,7 +136,11 @@ public class SearchServlet extends BaseServlet {
                 if (searchResult != null) {
                     response.setCharacterEncoding(UTF_8);
                     response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write(searchResult.toJson().toString());
+                    String j = searchResult.toJson().toString();
+                    if (callback != null) {
+                       j = callback + "(" + j + ")";
+                    }
+                    response.getWriter().write(j);
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.getWriter().flush();
                     response.getWriter().close();
@@ -140,11 +153,18 @@ public class SearchServlet extends BaseServlet {
                 String searchText = request.getParameter(PARAMETER_TEXT);
                 SearchDescriptor sd = new SearchDescriptor();
                 sd.setViewName(request.getParameter(PARAMETER_VIEW));
-                if (request.getParameter(PARAMETER_OFFSET) != null) {
-                    sd.setOffset(new Integer(request.getParameter(PARAMETER_OFFSET)));
-                }
-                if (request.getParameter(PARAMETER_COUNT) != null) {
-                    sd.setCount(new Integer(request.getParameter(PARAMETER_COUNT)));
+                if (request.getParameter(PARAMETER_PAGE) != null && request.getParameter(PARAMETER_PAGE_SIZE) != null) {
+                   int ps = new Integer(request.getParameter(PARAMETER_PAGE_SIZE));
+                   int p = new Integer(request.getParameter(PARAMETER_PAGE));
+                   sd.setOffset((p-1) * ps);
+                   sd.setCount(ps);
+                } else {
+                   if (request.getParameter(PARAMETER_OFFSET) != null) {
+                       sd.setOffset(new Integer(request.getParameter(PARAMETER_OFFSET)));
+                   }
+                   if (request.getParameter(PARAMETER_COUNT) != null) {
+                       sd.setCount(new Integer(request.getParameter(PARAMETER_COUNT)));
+                   }
                 }
                 if (request.getParameter(PARAMETER_FILTER) != null) {
                     sd.setFilter(request.getParameter(PARAMETER_FILTER));
@@ -166,7 +186,11 @@ public class SearchServlet extends BaseServlet {
                 if (searchResult != null) {
                     response.setCharacterEncoding(UTF_8);
                     response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write(searchResult.toJson().toString());
+                    String j = searchResult.toJson().toString();
+                    if (callback != null) {
+                       j = callback + "(" + j + ")";
+                    }
+                    response.getWriter().write(j);
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.getWriter().flush();
                     response.getWriter().close();
@@ -177,11 +201,18 @@ public class SearchServlet extends BaseServlet {
             } else if (operationName.equals(Operations.categoryquery.toString())) {
                 SearchDescriptor sd = new SearchDescriptor();
                 sd.setViewName(request.getParameter(PARAMETER_VIEW));
-                if (request.getParameter(PARAMETER_OFFSET) != null) {
-                    sd.setOffset(new Integer(request.getParameter(PARAMETER_OFFSET)));
-                }
-                if (request.getParameter(PARAMETER_COUNT) != null) {
-                    sd.setCount(new Integer(request.getParameter(PARAMETER_COUNT)));
+                if (request.getParameter(PARAMETER_PAGE) != null && request.getParameter(PARAMETER_PAGE_SIZE) != null) {
+                   int ps = new Integer(request.getParameter(PARAMETER_PAGE_SIZE));
+                   int p = new Integer(request.getParameter(PARAMETER_PAGE));
+                   sd.setOffset((p-1) * ps);
+                   sd.setCount(ps);
+                } else {
+                   if (request.getParameter(PARAMETER_OFFSET) != null) {
+                       sd.setOffset(new Integer(request.getParameter(PARAMETER_OFFSET)));
+                   }
+                   if (request.getParameter(PARAMETER_COUNT) != null) {
+                       sd.setCount(new Integer(request.getParameter(PARAMETER_COUNT)));
+                   }
                 }
                 if (request.getParameter(PARAMETER_FILTER) != null) {
                     sd.setFilter(request.getParameter(PARAMETER_FILTER));
@@ -226,7 +257,11 @@ public class SearchServlet extends BaseServlet {
                     response.setCharacterEncoding(UTF_8);
                     response.setContentType("application/json;charset=UTF-8");
                     status = HttpServletResponse.SC_OK;
-                    response.getWriter().write(searchResult.toJson().toString());
+                    String j = searchResult.toJson().toString();
+                    if (callback != null) {
+                       j = callback + "(" + j + ")";
+                    }
+                    response.getWriter().write(j);
                     response.setStatus(status);
                     response.getWriter().flush();
                     response.getWriter().close();
@@ -236,12 +271,30 @@ public class SearchServlet extends BaseServlet {
                 }
             } else if (operationName.equals(Operations.category.toString())) {
                 String categoryPath = request.getParameter(PARAMETER_PATH);
-                Category root = dam.manager.findCategories(dam.connections.get(connectionName), categoryPath);
+                Integer categoryId = null;
+                if (categoryPath == null) {
+                   categoryId = new Integer(request.getParameter(PARAMETER_ID));
+                }
+                boolean recursive = true;
+                if (request.getParameter(PARAMETER_RECURSIVE) != null) recursive = new Boolean(request.getParameter(PARAMETER_RECURSIVE));
+                
+                Category root = null;
+                if (categoryPath != null) {
+                   root = dam.manager.findCategories(dam.connections.get(connectionName), categoryPath, recursive);
+                   
+                } else if (categoryId != null) {
+                   root = dam.manager.findCategories(dam.connections.get(connectionName), categoryId, recursive);                                    
+                }
+                
                 if (root != null) {
                     response.setCharacterEncoding(UTF_8);
                     response.setContentType("application/json;charset=UTF-8");
                     status = HttpServletResponse.SC_OK;
-                    response.getWriter().write(root.toJson().toString());
+                    String j = root.toJson().toString();
+                    if (callback != null) {
+                       j = callback + "(" + j + ")";
+                    }
+                    response.getWriter().write(j);
                     response.setStatus(status);
                     response.getWriter().flush();
                     response.getWriter().close();

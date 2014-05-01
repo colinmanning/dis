@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v7.0">
+		<attributes>
+			<attribute name="owner.project.facets" value="jst.web"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/disserver"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/damapicumulus"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/avalon-framework-4.2.0.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/barcode4j.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/commons-cli-1.0.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/commons-codec-1.7.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/commons-fileupload-1.2.2.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/commons-io-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/commons-lang3-3.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/commons-net-3.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/fontbox-1.7.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/h2-1.3.164.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/http-20070405.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/httpclient-4.2.2.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/httpclient-cache-4.2.2.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/httpcore-4.2.2.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/httpmime-4.2.2.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/ij-1.45q.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/ij-headless.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/jdom-1.0.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/jdom-1.1.3.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/jempbox-1.7.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/junit-4.10.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/mail.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/milton-api-2.2.0.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/milton-server-ce-2.2.0.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/mime-util-2.1.3.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/mysql-connector-java-5.1.24-bin.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/pdfbox-1.7.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/pdfbox-app-1.7.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/postgresql-9.2-1003.jdbc4.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/serializer-2.7.0.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/servlet-api-3.0.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/slf4j-api-1.7.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/slf4j-log4j12-1.7.1.jar"/>
+	<classpathentry kind="lib" path="/Users/colinmanning/dev/dis/lib/commons-collections4-4.0.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

@@ -304,7 +304,17 @@ public class Record {
          fieldMap.put(QueryResult.JSON_FILE_ISFOLDER, isFolder);
 
          for (Map.Entry<String, FieldValue> field : getFields().entrySet()) {
-            fieldMap.put(field.getKey(), FieldUtilities.getFieldValue(field.getValue(), true));
+            FieldValue fv = field.getValue();
+            try {
+               String simpleName = fv.getFieldDefinition().getSimpleName();
+               if (simpleName != null) {
+                  fieldMap.put(simpleName, FieldUtilities.getFieldValue(fv, true));
+               } else {
+                  fieldMap.put(field.getKey(), FieldUtilities.getFieldValue(fv, true));
+               }
+            } catch (Exception e) {
+               fieldMap.put(field.getKey(), FieldUtilities.getFieldValue(fv, true));
+            }
          }
          /*
           * should do this if keywords are in the view - leave for now

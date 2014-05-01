@@ -1,6 +1,5 @@
 package com.setantamedia.fulcrum.common;
 
-import java.io.FilenameFilter;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import org.apache.log4j.Logger;

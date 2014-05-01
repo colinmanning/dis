@@ -7,10 +7,10 @@ import com.setantamedia.fulcrum.common.Common;
 import com.setantamedia.fulcrum.common.Session;
 import com.setantamedia.fulcrum.common.Utilities;
 import com.setantamedia.fulcrum.dam.entities.Folder;
-import static com.setantamedia.fulcrum.ws.BaseServlet.PARAMETER_PATH;
 import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.Record;
 import com.setantamedia.fulcrum.ws.types.User;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Enumeration;
@@ -20,7 +20,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.Iterator;
+import java.io.BufferedReader;
+
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
 @SuppressWarnings("serial")
 /**
@@ -82,12 +86,9 @@ public class DataServlet extends BaseServlet {
                 user = sessionData.getUser();
             }
 
+            callback = request.getParameter(PARAMETER_CALLBACK);
+
             String itemName = request.getParameter(PARAMETER_ITEM);
-            String inheritCategoryFields = request.getParameter(PARAMETER_INHERIT_CATEGORY_FIELDS);
-            String[] inheritFields = new String[0];
-            if (inheritCategoryFields != null) {
-                inheritFields = inheritCategoryFields.split(",");
-            }
             if (operationName.equals(Operations.create.toString())) {
                 if (itemName == null) {
                     itemName = DEFAULT_ITEM;
@@ -120,7 +121,11 @@ public class DataServlet extends BaseServlet {
                 Record record = dam.manager.getFileMetadata(dam.connections.get(connectionName), id, viewName, Utilities.getLocale());
                 response.setCharacterEncoding(UTF_8);
                 response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write(record.toJson().toString());
+                String j = record.toJson().toString();
+                if (callback != null) {
+                    j = callback + "(" + j + ")";
+                }
+                response.getWriter().write(j);
                 response.getWriter().flush();
                 response.getWriter().close();
                 status = HttpServletResponse.SC_OK;
@@ -154,7 +159,7 @@ public class DataServlet extends BaseServlet {
                 while (paramNames.hasMoreElements()) {
                     String paramName = (String) paramNames.nextElement();
                     if (paramName.startsWith(FULCRUM_PREFIX)) {
-                        // real parameters start with "dis_" - second bit is the real parameter name
+                        // real parameters start with "fulcrum" - second bit is the real parameter name
                         fields.put(paramName.substring(prefixLength), request.getParameter(paramName));
                     }
                 }
@@ -189,6 +194,8 @@ public class DataServlet extends BaseServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int status = HttpServletResponse.SC_EXPECTATION_FAILED;
         try {
+            String contentType = request.getHeader("Content-Type");
+
             String[] pathElements = getPathElements(request);
             if (pathElements.length < 3) {
                 logger.error("Invalid data service request");
@@ -197,6 +204,7 @@ public class DataServlet extends BaseServlet {
             serviceName = SERVICE_NAME;
             connectionName = pathElements[1];
             operationName = pathElements[2];
+            logger.info("Posting data for operation: " + operationName);
             // do access control
             if (!requestAllowed(request.getRemoteAddr())) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -209,12 +217,42 @@ public class DataServlet extends BaseServlet {
             }
             HashMap<String, String> fields = new HashMap<>();
 
-            Enumeration paramNames = request.getParameterNames();
-            while (paramNames.hasMoreElements()) {
-                String paramName = (String) paramNames.nextElement();
-                if (paramName.startsWith(FULCRUM_PREFIX)) {
-                    // real parameters start with "dis_" - second bit is the real parameter name
-                    fields.put(paramName.substring(prefixLength), request.getParameter(paramName));
+
+            if (contentType != null && contentType.startsWith(CONTENT_TYPE_JSON)) {
+                String jsonString = null;
+                StringBuilder sb = new StringBuilder();
+                    try {
+                        BufferedReader br = request.getReader();
+                        String str;
+                        while( (str = br.readLine()) != null ){
+                            sb.append(str);
+                        }
+                        jsonString = sb.toString();
+                        JSONObject jo = new JSONObject(jsonString);
+                        Iterator<String> keys = jo.keys();
+                        while (keys.hasNext()) {
+                            String key = keys.next();
+                            fields.put(key, jo.getString(key));
+                        }
+                    } catch (Exception je) {
+                        if (jsonString != null) {
+                            logger.error("Problem processing POSTed JSON: " + jsonString);
+                        } else {
+                            logger.error("PPOSTed JSON is null");
+                        }
+                        je.printStackTrace();
+                    }
+            } else {
+                Enumeration paramNames = request.getParameterNames();
+                while (paramNames.hasMoreElements()) {
+                    String paramName = (String) paramNames.nextElement();
+                    if (paramName.startsWith(FULCRUM_PREFIX)) {
+                        // real parameters start with "fulcrum_" - second bit is the real parameter name
+                        String fkey = paramName.substring(prefixLength);
+                        String fvalue = new String(request.getParameter(paramName));
+                        fields.put(fkey, fvalue);
+                        logger.info("Got post param: " + fkey + " with value: " + fvalue);
+                    }
                 }
             }
 

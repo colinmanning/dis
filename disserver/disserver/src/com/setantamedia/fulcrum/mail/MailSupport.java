@@ -14,11 +14,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import org.apache.log4j.Logger;
 
 public class MailSupport {
-
-	private static Logger logger = Logger.getLogger(MailSupport.class);
 
 	public final static String X_MAILER = "DisMailer";
 

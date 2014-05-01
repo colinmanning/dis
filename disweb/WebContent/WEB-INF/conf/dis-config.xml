@@ -287,7 +287,7 @@
                 <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
                 <param name="dbField:Word_Count" value="damField:Word Count:replace" />
                 <param name="dbField:On_Sale" value="damField:Onsale:replace:stringToDateTime" />
-                <param name="dateTimeFiormat" value="M/d/YYYY hh:mm:ss" />
+                <param name="dateTimeFormat" value="M/d/YYYY hh:mm:ss" />
             </params>
         </action>
         <action name="first-run-related-isbn">
@@ -309,7 +309,7 @@
                 <param name="dbField:TEXT_SET" value="damField:Page Count:replace" />
                 <param name="dbField:Word_Count" value="damField:Word Count:replace" />
                 <param name="dbField:On_Sale" value="damField:Onsale:replace:stringToDateTime" />
-                <param name="dateTimeFiormat" value="M/d/YYYY hh:mm:ss" />
+                <param name="dateTimeFormat" value="M/d/YYYY hh:mm:ss" />
             </params>
         </action>
         <action name="office-pdf-archive">

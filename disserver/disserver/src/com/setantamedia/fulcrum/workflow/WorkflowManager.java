@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -14,7 +13,6 @@ import org.apache.log4j.Logger;
  */
 public class WorkflowManager {
 
-    private static Logger logger = Logger.getLogger(WorkflowManager.class);
     private HashMap<String, Workflow> workflows = new HashMap<>();
     private HashMap<String, ActionProcessor> actionProcessors = new HashMap<>();
     public final static int DEFAULT_MAX_WORKER_THREADS = 4;

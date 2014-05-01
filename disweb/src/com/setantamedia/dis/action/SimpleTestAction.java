@@ -1,13 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.setantamedia.dis.action;
 
 import com.setantamedia.fulcrum.actions.ActionProcessor;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,7 +13,6 @@ import org.json.JSONObject;
  */
 public class SimpleTestAction extends ActionProcessor {
 
-    private static Logger logger = Logger.getLogger(SimpleTestAction.class);
     public final static String PARAM_TEXT = "text";
     private String textParam = null;
 
