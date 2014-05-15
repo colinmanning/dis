@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 
 @SuppressWarnings("serial")
 /**
@@ -33,7 +34,7 @@ public class SearchServlet extends BaseServlet {
 
     public enum Operations {
 
-        query, fulltext, category, categoryquery
+        query, fulltext, category, categoryquery, categorymatch
     }
 
     @Override
@@ -302,6 +303,27 @@ public class SearchServlet extends BaseServlet {
                     logger.error("A request for categories did not execute correctly");
                     status = HttpServletResponse.SC_EXPECTATION_FAILED;
                 }
+            } else if (operationName.equals(Operations.categorymatch.toString())) {
+                String text = request.getParameter(PARAMETER_TEXT);
+                Boolean exactMatch = (request.getParameter(PARAMETER_EXACT) != null) ? new Boolean(request.getParameter(PARAMETER_EXACT)) : false;
+                Boolean detailed = (request.getParameter(PARAMETER_DETAILED) != null) ? new Boolean(request.getParameter(PARAMETER_DETAILED)) : false;
+                Boolean recursive = (request.getParameter(PARAMETER_RECURSIVE) != null) ? new Boolean(request.getParameter(PARAMETER_RECURSIVE)) : false;
+                Category[] categories = dam.manager.matchCategories(dam.connections.get(connectionName), text, exactMatch, detailed, recursive);
+                    response.setCharacterEncoding(UTF_8);
+                    response.setContentType("application/json;charset=UTF-8");
+                    status = HttpServletResponse.SC_OK;
+                    JSONArray jsonCategories = new JSONArray();
+                    for (Category category:categories) {
+                        jsonCategories.put(category.toJson());
+                    }
+                    String j = jsonCategories.toString();
+                    if (callback != null) {
+                        j = callback + "(" + j + ")";
+                    }
+                    response.getWriter().write(j);
+                    response.setStatus(status);
+                    response.getWriter().flush();
+                    response.getWriter().close();
             }
         } catch (Exception e) {
             e.printStackTrace();

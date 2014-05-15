@@ -352,7 +352,7 @@ public class FileServlet extends BaseServlet {
                FileItem item = (FileItem) it.next();
                if (item.isFormField()) {
                   if (item.getFieldName().startsWith(FULCRUM_PREFIX)) {
-                     // real parameters start with "dis_"
+                     // real parameters start with "fulcrum_"
                      String[] bits = item.getFieldName().split("_");
                      switch (bits[1]) {
                      case PARAMETER_LOCATION:
@@ -439,7 +439,7 @@ public class FileServlet extends BaseServlet {
                FileItem item = (FileItem) it.next();
                if (item.isFormField()) {
                   if (item.getFieldName().startsWith(FULCRUM_PREFIX)) {
-                     // real parameters start with "dis_"
+                     // real parameters start with "fulcrum"
                      String[] bits = item.getFieldName().split("_");
                      fields.put(bits[1], item.getString());
                   } else if (PARAMETER_PROFILE.equals(item.getFieldName())) {

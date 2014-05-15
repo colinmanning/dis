@@ -130,6 +130,10 @@ public class DamManager {
         throw new DamManagerNotImplementedException();
     }
 
+    public Category[] matchCategories(Connection connection, String text, boolean exactMatch, boolean detailed, boolean recursive) throws DamManagerNotImplementedException {
+        throw new DamManagerNotImplementedException();
+    }
+
     public byte[] getThumbnail(Connection connection, String id, Integer maxSize, SearchDescriptor searchDescriptor) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();
     }
@@ -263,6 +267,9 @@ public class DamManager {
     }
 
     public DatabaseField[] getFields(Connection connection, String view) throws DamManagerNotImplementedException {
+        throw new DamManagerNotImplementedException();
+    }
+    public DatabaseField[] getCategoryFields(Connection connection) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();
     }
 

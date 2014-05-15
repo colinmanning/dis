@@ -18,6 +18,7 @@ public class Category {
     private int customOrder = -1;
     private boolean hasChildren = false;
     private ArrayList<Category> subCategories = new ArrayList<Category>();
+    private HashMap<String, Object> fields = new HashMap<>();
 
     public Category() {
     }
@@ -80,5 +81,25 @@ public class Category {
             jsonData.put(SUB_CATEGORIES, new JSONArray(jsonSubCategories));
         }
         return new JSONObject(jsonData);
+    }
+
+    public HashMap<String, Object> getFields() {
+        return fields;
+    }
+
+    public void setFields(HashMap<String, Object> fields) {
+        this.fields = fields;
+    }
+
+    public void addField(String key, Object value) {
+        fields.put(key, value);
+    }
+
+    public void rermoveField(String key, Object value) {
+        fields.remove(key);
+    }
+
+    public Object getField(String key) {
+        return fields.get(key);
     }
 }

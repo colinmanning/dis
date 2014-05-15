@@ -91,6 +91,8 @@ public class AdminServlet extends BaseServlet {
                 return;
             }
 
+            callback = request.getParameter(PARAMETER_CALLBACK);
+
             /*
              * String localAddress = request.getLocalAddr(); String remoteAddress = request.getRemoteAddr(); String
              * remoteHost = request.getRemoteHost();
@@ -282,7 +284,11 @@ public class AdminServlet extends BaseServlet {
                     response.setCharacterEncoding(UTF_8);
                     response.setContentType("application/json;charset=UTF-8");
                     try (PrintWriter out = response.getWriter()) {
-                        out.write(new JSONObject(user).toString());
+                        String j = new JSONObject(user).toString();
+                        if (callback != null) {
+                            j = callback + "(" + j + ")";
+                        }
+                        out.write(j);
                         out.flush();
                     }
                     status = HttpServletResponse.SC_OK;
@@ -448,6 +454,31 @@ public class AdminServlet extends BaseServlet {
                 jsonFields.add(new JSONObject(fieldMap));
             }
             result.put("fields", new JSONArray(jsonFields));
+            DatabaseField[] categoryFields = dam.manager.getCategoryFields(connection);
+            List<JSONObject> jsonCategoryFields = new ArrayList<>();
+            for (DatabaseField categoryField : categoryFields) {
+                HashMap<String, Object> categoryFieldMap = new HashMap<>();
+                categoryFieldMap.put(JSON_FIELD_KEY_NAME, categoryField.getName());
+                categoryFieldMap.put(JSON_FIELD_KEY_SIMPLE_NAME, categoryField.getSimpleName());
+                categoryFieldMap.put(JSON_FIELD_KEY_DISPLAY_NAME, categoryField.getDisplayName());
+                categoryFieldMap.put(JSON_FIELD_KEY_CORE_FIELD, categoryField.getCoreField());
+                categoryFieldMap.put(JSON_FIELD_KEY_GUID, categoryField.getGuid());
+                categoryFieldMap.put(JSON_FIELD_KEY_DATA_TYPE, categoryField.getDataType());
+                categoryFieldMap.put(JSON_FIELD_KEY_VALUE_INTERPRETATION, categoryField.getValueInterpretation());
+                if (categoryField.isSelect()) {
+                    StringListValue[] slv = categoryField.getListValues();
+                    JSONObject[] lvs = new JSONObject[slv.length];
+                    int i = 0;
+                    for (StringListValue v : slv) {
+                        lvs[i++] = new JSONObject(v);
+                    }
+                    categoryFieldMap.put(JSON_FIELD_KEY_LIST_VALUES, new JSONArray(lvs));
+                }
+                categoryFieldMap.put(JSON_FIELD_KEY_LIST_MULTI_SELECT, categoryField.isMultiSelect());
+                jsonCategoryFields.add(new JSONObject(categoryFieldMap));
+
+            }
+            result.put("categoryFields", new JSONArray(jsonCategoryFields));
 
             // previews, links and references
             result.put("previews", new JSONObject(dam.manager.getPreviews(connection, viewName)));
@@ -455,6 +486,7 @@ public class AdminServlet extends BaseServlet {
             result.put("references", new JSONObject(dam.manager.getReferences(connection, viewName)));
             result.put("name", viewName);
         }
+
         return result;
     }
 
