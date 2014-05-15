@@ -146,7 +146,7 @@ public class CumulusManager extends DamManager {
    /*
     * (non-Javadoc)
     * 
-    * @see com.acalian.dam.ws.DamManager#textSearch(java.lang.String,
+    * @see com.acalian.dam.ws.DamManager#arch(java.lang.String,
     * java.lang.String, com.acalian.dam.common.SearchDescriptor)
     */
    @Override
@@ -183,7 +183,23 @@ public class CumulusManager extends DamManager {
       return result;
    }
 
-   @Override
+    @Override
+    public Category[] matchCategories(Connection connection, String text, boolean exactMatch, boolean detailed, boolean recursive) throws DamManagerNotImplementedException {
+        Category[] result = new Category[0];
+        String query = "\"" + GUID.UID_CAT_NAME.toString() + "\"";
+        query += (exactMatch) ? " == " : " ? ";
+        query +=  "\"" + text + "\"";
+        try {
+            result = helper.matchCategories(connection, query, detailed, recursive);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+
+
+    @Override
    public byte[] getThumbnail(Connection connection, String id, Integer maxSize, SearchDescriptor searchDescriptor) {
       return helper.getThumbnail(connection, id, maxSize, searchDescriptor);
    }
@@ -561,6 +577,11 @@ public class CumulusManager extends DamManager {
    public DatabaseField[] getFields(Connection connection) {
       return getFields(connection, null);
    }
+
+   @Override
+   public DatabaseField[] getCategoryFields(Connection connection) {
+        return helper.getCategoryFields(connection);
+    }
 
    @Override
    public void removeTemporaryFile(Path file) {

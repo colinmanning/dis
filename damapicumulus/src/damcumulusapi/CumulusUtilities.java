@@ -1,8 +1,11 @@
 package damcumulusapi;
 
 import com.canto.cumulus.*;
+import com.canto.cumulus.constants.CombineMode;
+import com.canto.cumulus.constants.FindFlag;
 import com.canto.cumulus.exceptions.FieldNotFoundException;
 import com.canto.cumulus.exceptions.ItemNotFoundException;
+import com.canto.cumulus.exceptions.QueryParserException;
 import com.setantamedia.fulcrum.common.*;
 import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.Record;
@@ -11,7 +14,9 @@ import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.Locale;
 
 public class CumulusUtilities {
 
@@ -329,7 +334,6 @@ public class CumulusUtilities {
    /**
     * Gets full preview for an asset
     *
-    * @param record
     * @return
     * @throws Exception
     */
@@ -376,28 +380,26 @@ public class CumulusUtilities {
    }
 
    public static Object getCumulusFieldValue(FieldValue v) {
-      return getCumulusFieldValue(v, false);
+       return getCumulusFieldValue(v, false);
    }
-   
-   public static Category processCategories(CategoryItem rootCategory, boolean recursive) {
+
+    public static Category processCategories(CategoryItem rootCategory, boolean recursive) {
+        return processCategories(rootCategory, false, recursive, null, null, null);
+    }
+
+    public static Category processCategories(CategoryItem rootCategory, boolean detailed, boolean recursive, DatabaseField[] fields, GUID[] categoryFieldGuids, Layout layout) {
       Category result = new Category();
       result.setId(rootCategory.getID());
       result.setName(rootCategory.getStringValue(GUID.UID_CAT_NAME));
       result.setHasChildren(rootCategory.getHasSubCategories());
-            if (rootCategory.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
+      if (rootCategory.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
          result.setCustomOrder(rootCategory.getIntValue(GUID.UID_CAT_CUSTOM_ORDER));
       }
       CategoryItem childItem = rootCategory.getFirstChildCategoryItem();
       while (childItem != null) {
-         Category category = new Category();
-         category.setId(childItem.getID());
-         category.setName(childItem.getStringValue(GUID.UID_CAT_NAME));
-         category.setHasChildren(childItem.getHasSubCategories());
-         if (childItem.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
-            category.setCustomOrder(childItem.getIntValue(GUID.UID_CAT_CUSTOM_ORDER));
-         }
+         Category category = setupCategory(childItem, detailed, fields, categoryFieldGuids, layout);
          if (recursive) {
-            result.addSubCategory(processCategories(childItem, recursive));
+            result.addSubCategory(processCategories(childItem, detailed, recursive, fields, categoryFieldGuids, layout));
          } else {
             result.addSubCategory(category);
          }
@@ -405,8 +407,40 @@ public class CumulusUtilities {
       }
       return result;
    }
-  
-   public static Category findCategory(CategoryItemCollection collection, int id) {
+
+    public static Category setupCategory(CategoryItem childItem) {
+        return setupCategory(childItem, false);
+    }
+    public static Category setupCategory(CategoryItem childItem, boolean detailed) {
+        return setupCategory(childItem, false, null, null, null);
+    }
+
+    public static Category setupCategory(CategoryItem childItem, boolean detailed, DatabaseField[] fields, GUID[] categoryFieldGuids, Layout layout) {
+        Category result = new Category();
+        result.setId(childItem.getID());
+        result.setName(childItem.getStringValue(GUID.UID_CAT_NAME));
+        result.setHasChildren(childItem.getHasSubCategories());
+        if (childItem.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
+            result.setCustomOrder(childItem.getIntValue(GUID.UID_CAT_CUSTOM_ORDER));
+        }
+        if (detailed) {
+            try {
+                for (int f = 0; f < fields.length; f++) {
+                    DatabaseField field = fields[f];
+                    FieldValue fieldValue = CumulusHelper.getFieldValue(childItem, categoryFieldGuids[f], layout, Locale.getDefault());
+                    fieldValue.setFieldDefinition(field);
+                    fieldValue.setDataType(field.getDataType());
+                    fieldValue.setValueInterpretation(field.getValueInterpretation());
+                    result.addField(field.getName(), fieldValue);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public static Category findCategory(CategoryItemCollection collection, int id) {
       Category result = new Category();
       CategoryItem category = null;
       try {
