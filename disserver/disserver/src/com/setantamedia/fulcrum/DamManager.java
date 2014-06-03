@@ -230,10 +230,19 @@ public class DamManager {
     public Folder createSubFolder(Connection connection, User user, Folder parent, String path) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();
     }
+
     public Category createCategory(Connection connection, User user, String path) throws DamManagerNotImplementedException {
         throw new DamManagerNotImplementedException();
     }
-    
+
+    public void deleteCategory(Connection connection, User user, String path) throws DamManagerNotImplementedException {
+        throw new DamManagerNotImplementedException();
+    }
+
+    public void deleteCategory(Connection connection, User user, Integer id) throws DamManagerNotImplementedException {
+        throw new DamManagerNotImplementedException();
+    }
+
     /*
      * Keep this version for backward compilation compatability
      */
