@@ -11,24 +11,19 @@ import com.canto.cumulus.usermanagement.UserFieldDefinition;
 import com.canto.cumulus.utils.LanguageManager;
 import com.setantamedia.fulcrum.DamManager;
 import com.setantamedia.fulcrum.DamManagerNotImplementedException;
-import com.setantamedia.fulcrum.common.FieldValue;
 import com.setantamedia.fulcrum.common.*;
+import com.setantamedia.fulcrum.common.FieldValue;
 import com.setantamedia.fulcrum.config.Field;
 import com.setantamedia.fulcrum.config.View;
 import com.setantamedia.fulcrum.models.core.Person;
 import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.QueryResult;
 import com.setantamedia.fulcrum.ws.types.Record;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.*;
-
-import org.apache.log4j.Logger;
 
 public class CumulusHelper {
 
@@ -118,7 +113,7 @@ public class CumulusHelper {
     }
 
     public GUID[] getCategoryFieldGuids(DatabaseField[] fields) {
-        if (categoryFieldGuids != null) {
+        if (categoryFieldGuids == null) {
             categoryFieldGuids = new GUID[fields.length];
             for (int f = 0; f < fields.length; f++) {
                 try {
@@ -333,6 +328,59 @@ public class CumulusHelper {
         return result;
     }
 
+    public void deleteCategory(Connection connection, String path) {
+        CumulusCollectionManager collectionManager;
+        try {
+            collectionManager = getOrInitCollectionManager(connection);
+            CategoryItem category;
+            CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
+            if (collection != null) {
+                synchronized (collection) {
+                    try {
+                        Integer id = collection.getCategoryTreeItemIDByPath(path);
+                        category = collection.getCategoryItemByID(id);
+                        category.deleteItem();
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    } finally {
+                        if (collectionManager.getOnDemand()) {
+                            // make sure we free up used connection if on demand
+                            collectionManager.terminate();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    };
+
+    public void deleteCategory(Connection connection, Integer id) {
+        CumulusCollectionManager collectionManager;
+        try {
+            collectionManager = getOrInitCollectionManager(connection);
+            CategoryItem category;
+            CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
+            if (collection != null) {
+                synchronized (collection) {
+                    try {
+                        category = collection.getCategoryItemByID(id);
+                        category.deleteItem();
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    } finally {
+                        if (collectionManager.getOnDemand()) {
+                            // make sure we free up used connection if on demand
+                            collectionManager.terminate();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    };
+
     public Category createCategory(Connection connection, String path) {
         Category result = null;
         CumulusCollectionManager collectionManager;
@@ -377,7 +425,7 @@ public class CumulusHelper {
             CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
             if (collection != null) {
                 rootCategory = collection.getCategoryItemByID(pathId);
-                result = CumulusUtilities.processCategories(rootCategory, recursive);
+                result = CumulusUtilities.processCategories(rootCategory, null, recursive);
             }
         } catch (InvalidArgumentException | ItemNotFoundException | CumulusException e) {
             e.printStackTrace();
@@ -1263,9 +1311,9 @@ public class CumulusHelper {
                                     CategoryItem citem = (CategoryItem) allCategoriesItemCollection.getItemByID(id);
                                     //result[i++] = CumulusUtilities.setupCategory(citem, detailed);
                                     if (detailed) {
-                                        result[i++] = CumulusUtilities.processCategories(citem, true, recursive, getCategoryFields(connection), categoryFieldGuids, layout);
+                                        result[i++] = CumulusUtilities.processCategories(citem, null, true, recursive, getCategoryFields(connection), categoryFieldGuids, layout);
                                     } else {
-                                        result[i++] = CumulusUtilities.processCategories(citem, recursive);
+                                        result[i++] = CumulusUtilities.processCategories(citem, null, recursive);
 
                                     }
                                 }

@@ -1,20 +1,17 @@
 package damcumulusapi;
 
 import com.canto.cumulus.*;
-import com.canto.cumulus.constants.CombineMode;
-import com.canto.cumulus.constants.FindFlag;
 import com.canto.cumulus.exceptions.FieldNotFoundException;
 import com.canto.cumulus.exceptions.ItemNotFoundException;
-import com.canto.cumulus.exceptions.QueryParserException;
 import com.setantamedia.fulcrum.common.*;
 import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.Record;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Locale;
 
@@ -383,23 +380,17 @@ public class CumulusUtilities {
        return getCumulusFieldValue(v, false);
    }
 
-    public static Category processCategories(CategoryItem rootCategory, boolean recursive) {
-        return processCategories(rootCategory, false, recursive, null, null, null);
+    public static Category processCategories(CategoryItem rootCategory, String parentPath, boolean recursive) {
+        return processCategories(rootCategory, parentPath, false, recursive, null, null, null);
     }
 
-    public static Category processCategories(CategoryItem rootCategory, boolean detailed, boolean recursive, DatabaseField[] fields, GUID[] categoryFieldGuids, Layout layout) {
-      Category result = new Category();
-      result.setId(rootCategory.getID());
-      result.setName(rootCategory.getStringValue(GUID.UID_CAT_NAME));
-      result.setHasChildren(rootCategory.getHasSubCategories());
-      if (rootCategory.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
-         result.setCustomOrder(rootCategory.getIntValue(GUID.UID_CAT_CUSTOM_ORDER));
-      }
+    public static Category processCategories(CategoryItem rootCategory, String parentPath, boolean detailed, boolean recursive, DatabaseField[] fields, GUID[] categoryFieldGuids, Layout layout) {
+      Category result = setupCategory(rootCategory, parentPath, detailed, fields, categoryFieldGuids, layout);
       CategoryItem childItem = rootCategory.getFirstChildCategoryItem();
       while (childItem != null) {
-         Category category = setupCategory(childItem, detailed, fields, categoryFieldGuids, layout);
+         Category category = setupCategory(childItem, parentPath, detailed, fields, categoryFieldGuids, layout);
          if (recursive) {
-            result.addSubCategory(processCategories(childItem, detailed, recursive, fields, categoryFieldGuids, layout));
+            result.addSubCategory(processCategories(childItem, result.getPath(), detailed, recursive, fields, categoryFieldGuids, layout));
          } else {
             result.addSubCategory(category);
          }
@@ -408,18 +399,21 @@ public class CumulusUtilities {
       return result;
    }
 
-    public static Category setupCategory(CategoryItem childItem) {
-        return setupCategory(childItem, false);
-    }
-    public static Category setupCategory(CategoryItem childItem, boolean detailed) {
-        return setupCategory(childItem, false, null, null, null);
+    public static Category setupCategory(CategoryItem childItem, String parentPath) {
+        return setupCategory(childItem, parentPath, false);
     }
 
-    public static Category setupCategory(CategoryItem childItem, boolean detailed, DatabaseField[] fields, GUID[] categoryFieldGuids, Layout layout) {
+    public static Category setupCategory(CategoryItem childItem, String parentPath, boolean detailed) {
+        return setupCategory(childItem, parentPath, false, null, null, null);
+    }
+
+    public static Category setupCategory(CategoryItem childItem, String parentPath, boolean detailed, DatabaseField[] fields, GUID[] categoryFieldGuids, Layout layout) {
         Category result = new Category();
         result.setId(childItem.getID());
         result.setName(childItem.getStringValue(GUID.UID_CAT_NAME));
         result.setHasChildren(childItem.getHasSubCategories());
+        result.setParentId(childItem.getIntValue(GUID.UID_CAT_PARENT_ID));
+        result.setPath((parentPath != null) ? (parentPath + ":" + result.getName()) : result.getName());
         if (childItem.hasValue(GUID.UID_CAT_CUSTOM_ORDER)) {
             result.setCustomOrder(childItem.getIntValue(GUID.UID_CAT_CUSTOM_ORDER));
         }

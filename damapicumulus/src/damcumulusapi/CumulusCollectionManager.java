@@ -188,7 +188,7 @@ public class CumulusCollectionManager extends DatabaseManager {
    }
 
    public AllCategoriesItemCollection getAllCategoriesItemCollection() {
-      return getAllCategoriesItemCollection(false);
+       return getAllCategoriesItemCollection(false);
    }
 
    public Catalog getMasterCatalog() {

@@ -17,17 +17,14 @@ import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.QueryResult;
 import com.setantamedia.fulcrum.ws.types.Record;
 import com.setantamedia.fulcrum.ws.types.User;
+import org.apache.log4j.Logger;
+
 import java.io.FileNotFoundException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import org.apache.log4j.Logger;
+import java.util.*;
 
 public class CumulusManager extends DamManager {
 
@@ -313,6 +310,16 @@ public class CumulusManager extends DamManager {
       return helper.createCategory(connection, path);
    }
 
+    @Override
+    public void deleteCategory(Connection connection, User user, String path) throws DamManagerNotImplementedException {
+        helper.deleteCategory(connection, path);
+    }
+
+    @Override
+    public void deleteCategory(Connection connection, User user, Integer id) throws DamManagerNotImplementedException {
+       helper.deleteCategory(connection, id);
+    }
+
    @Override
    public Folder createFolder(Connection connection, User user, String path) {
       Folder result;
@@ -348,7 +355,7 @@ public class CumulusManager extends DamManager {
          CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
          if (collection != null) {
             rootCategory = collection.getCategoryItemByID(id);
-            result = CumulusUtilities.processCategories(rootCategory, recursive);
+            result = CumulusUtilities.processCategories(rootCategory, null, recursive);
          }
       } catch (InvalidArgumentException | ItemNotFoundException | CumulusException e) {
          e.printStackTrace();
@@ -366,7 +373,7 @@ public class CumulusManager extends DamManager {
          CategoryItemCollection collection = collectionManager.getAllCategoriesItemCollection();
          if (collection != null) {
             rootCategory = collection.getCategoryItemByID(collection.getCategoryTreeItemIDByPath(path));
-            result = CumulusUtilities.processCategories(rootCategory, recursive);
+            result = CumulusUtilities.processCategories(rootCategory, path,recursive);
          }
       } catch (InvalidArgumentException | ItemNotFoundException | CumulusException e) {
          e.printStackTrace();
