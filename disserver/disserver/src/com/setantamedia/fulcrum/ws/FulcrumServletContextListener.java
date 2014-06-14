@@ -3,6 +3,7 @@ package com.setantamedia.fulcrum.ws;
 import com.setantamedia.fulcrum.AdvancedServer;
 import com.setantamedia.fulcrum.CoreServer;
 import java.io.InputStream;
+import java.nio.file.Path;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -22,6 +23,11 @@ public class FulcrumServletContextListener implements ServletContextListener {
     public final static String FULCRUM_CONFIG = "fulcrum-config";
     public final static String FULCRUM_DAM = "fulcrum-dam";
     public final static String TMP_FOLDER = "tmp-folder";
+    public final static String DB_FOLDER = "db-folder";
+    public final static String ACCESS_TOKEN = "access-token";
+    public final static String ADMIN_USER = "admin-user";
+    public final static String ACCESS_CONTROL = "access-control";
+    public final static String PUBLIC = "public";
     public final static String PREVIEW_CACHE_FOLDER = "preview-cache-folder";
     public final static String MAIN_SERVER = "main-server";
     

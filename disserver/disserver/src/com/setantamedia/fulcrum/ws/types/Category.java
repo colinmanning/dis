@@ -2,7 +2,10 @@ package com.setantamedia.fulcrum.ws.types;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
+import com.setantamedia.fulcrum.common.FieldUtilities;
+import com.setantamedia.fulcrum.common.FieldValue;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -10,15 +13,19 @@ public class Category {
 
     public final static String ID = "id";
     public final static String NAME = "name";
+    public final static String PARENT_ID = "parentId";
+    public final static String PATH = "path";
     public final static String CUSTOM_ORDER = "customOrder";
     public final static String SUB_CATEGORIES = "subcategories";
     public final static String HAS_CHILDREN = "hasChildren";
     private int id = -1;
+    private int parentId = -1;
+    private String path = null;
     private String name = null;
     private int customOrder = -1;
     private boolean hasChildren = false;
     private ArrayList<Category> subCategories = new ArrayList<Category>();
-    private HashMap<String, Object> fields = new HashMap<>();
+    private HashMap<String, FieldValue> fields = new HashMap<>();
 
     public Category() {
     }
@@ -68,11 +75,7 @@ public class Category {
    }
 
    public JSONObject toJson() {
-        HashMap<String, Object> jsonData = new HashMap<>();
-        jsonData.put(ID, id);
-        jsonData.put(NAME, name);
-        jsonData.put(CUSTOM_ORDER, customOrder);
-        jsonData.put(HAS_CHILDREN, hasChildren);
+        HashMap<String, Object> jsonData = buildJsonMap();
         ArrayList<JSONObject> jsonSubCategories = new ArrayList<>();
         for (Category subCategory : subCategories) {
             jsonSubCategories.add(subCategory.toJson());
@@ -83,15 +86,44 @@ public class Category {
         return new JSONObject(jsonData);
     }
 
-    public HashMap<String, Object> getFields() {
+    public HashMap<String, Object> buildJsonMap() {
+        HashMap<String, Object> fieldMap = new HashMap<>();
+        try {
+            fieldMap.put(ID, id);
+            fieldMap.put(NAME, name);
+            fieldMap.put(PARENT_ID, parentId);
+            fieldMap.put(PATH, path);
+            fieldMap.put(HAS_CHILDREN, hasChildren);
+
+            for (Map.Entry<String, FieldValue> field : getFields().entrySet()) {
+                FieldValue fv = field.getValue();
+                try {
+                    String simpleName = fv.getFieldDefinition().getSimpleName();
+                    if (simpleName != null) {
+                        fieldMap.put(simpleName, FieldUtilities.getFieldValue(fv, true));
+                    } else {
+                        fieldMap.put(field.getKey(), FieldUtilities.getFieldValue(fv, true));
+                    }
+                } catch (Exception e) {
+                    fieldMap.put(field.getKey(), FieldUtilities.getFieldValue(fv, true));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fieldMap;
+    }
+
+
+    public HashMap<String, FieldValue> getFields() {
         return fields;
     }
 
-    public void setFields(HashMap<String, Object> fields) {
+    public void setFields(HashMap<String, FieldValue> fields) {
         this.fields = fields;
     }
 
-    public void addField(String key, Object value) {
+    public void addField(String key, FieldValue value) {
         fields.put(key, value);
     }
 
@@ -101,5 +133,21 @@ public class Category {
 
     public Object getField(String key) {
         return fields.get(key);
+    }
+
+    public int getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 }

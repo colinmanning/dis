@@ -3,6 +3,7 @@ package com.setantamedia.fulcrum.ws;
 import com.setantamedia.fulcrum.AdvancedServer;
 import com.setantamedia.fulcrum.CoreServer;
 import com.setantamedia.fulcrum.DamManager;
+import com.setantamedia.fulcrum.DamManagerNotImplementedException;
 import com.setantamedia.fulcrum.common.*;
 import com.setantamedia.fulcrum.config.View;
 import com.setantamedia.fulcrum.db.DbManager;
@@ -454,31 +455,35 @@ public class AdminServlet extends BaseServlet {
                 jsonFields.add(new JSONObject(fieldMap));
             }
             result.put("fields", new JSONArray(jsonFields));
-            DatabaseField[] categoryFields = dam.manager.getCategoryFields(connection);
-            List<JSONObject> jsonCategoryFields = new ArrayList<>();
-            for (DatabaseField categoryField : categoryFields) {
-                HashMap<String, Object> categoryFieldMap = new HashMap<>();
-                categoryFieldMap.put(JSON_FIELD_KEY_NAME, categoryField.getName());
-                categoryFieldMap.put(JSON_FIELD_KEY_SIMPLE_NAME, categoryField.getSimpleName());
-                categoryFieldMap.put(JSON_FIELD_KEY_DISPLAY_NAME, categoryField.getDisplayName());
-                categoryFieldMap.put(JSON_FIELD_KEY_CORE_FIELD, categoryField.getCoreField());
-                categoryFieldMap.put(JSON_FIELD_KEY_GUID, categoryField.getGuid());
-                categoryFieldMap.put(JSON_FIELD_KEY_DATA_TYPE, categoryField.getDataType());
-                categoryFieldMap.put(JSON_FIELD_KEY_VALUE_INTERPRETATION, categoryField.getValueInterpretation());
-                if (categoryField.isSelect()) {
-                    StringListValue[] slv = categoryField.getListValues();
-                    JSONObject[] lvs = new JSONObject[slv.length];
-                    int i = 0;
-                    for (StringListValue v : slv) {
-                        lvs[i++] = new JSONObject(v);
+            try {
+                DatabaseField[] categoryFields = dam.manager.getCategoryFields(connection);
+                List<JSONObject> jsonCategoryFields = new ArrayList<>();
+                for (DatabaseField categoryField : categoryFields) {
+                    HashMap<String, Object> categoryFieldMap = new HashMap<>();
+                    categoryFieldMap.put(JSON_FIELD_KEY_NAME, categoryField.getName());
+                    categoryFieldMap.put(JSON_FIELD_KEY_SIMPLE_NAME, categoryField.getSimpleName());
+                    categoryFieldMap.put(JSON_FIELD_KEY_DISPLAY_NAME, categoryField.getDisplayName());
+                    categoryFieldMap.put(JSON_FIELD_KEY_CORE_FIELD, categoryField.getCoreField());
+                    categoryFieldMap.put(JSON_FIELD_KEY_GUID, categoryField.getGuid());
+                    categoryFieldMap.put(JSON_FIELD_KEY_DATA_TYPE, categoryField.getDataType());
+                    categoryFieldMap.put(JSON_FIELD_KEY_VALUE_INTERPRETATION, categoryField.getValueInterpretation());
+                    if (categoryField.isSelect()) {
+                        StringListValue[] slv = categoryField.getListValues();
+                        JSONObject[] lvs = new JSONObject[slv.length];
+                        int i = 0;
+                        for (StringListValue v : slv) {
+                            lvs[i++] = new JSONObject(v);
+                        }
+                        categoryFieldMap.put(JSON_FIELD_KEY_LIST_VALUES, new JSONArray(lvs));
                     }
-                    categoryFieldMap.put(JSON_FIELD_KEY_LIST_VALUES, new JSONArray(lvs));
+                    categoryFieldMap.put(JSON_FIELD_KEY_LIST_MULTI_SELECT, categoryField.isMultiSelect());
+                    jsonCategoryFields.add(new JSONObject(categoryFieldMap));
+
                 }
-                categoryFieldMap.put(JSON_FIELD_KEY_LIST_MULTI_SELECT, categoryField.isMultiSelect());
-                jsonCategoryFields.add(new JSONObject(categoryFieldMap));
+                result.put("categoryFields", new JSONArray(jsonCategoryFields));
+            } catch (DamManagerNotImplementedException de) {
 
             }
-            result.put("categoryFields", new JSONArray(jsonCategoryFields));
 
             // previews, links and references
             result.put("previews", new JSONObject(dam.manager.getPreviews(connection, viewName)));

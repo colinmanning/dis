@@ -4,17 +4,18 @@ import com.setantamedia.fulcrum.common.*;
 import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.QueryResult;
 import com.setantamedia.fulcrum.ws.types.User;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Enumeration;
-import java.util.HashMap;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.apache.log4j.Logger;
-import org.json.JSONArray;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Enumeration;
+import java.util.HashMap;
 
 @SuppressWarnings("serial")
 /**
@@ -304,6 +305,37 @@ public class SearchServlet extends BaseServlet {
                     status = HttpServletResponse.SC_EXPECTATION_FAILED;
                 }
             } else if (operationName.equals(Operations.categorymatch.toString())) {
+                SearchDescriptor sd = new SearchDescriptor();
+                sd.setViewName(request.getParameter(PARAMETER_VIEW));
+                if (request.getParameter(PARAMETER_PAGE) != null && request.getParameter(PARAMETER_PAGE_SIZE) != null) {
+                    int ps = new Integer(request.getParameter(PARAMETER_PAGE_SIZE));
+                    int p = new Integer(request.getParameter(PARAMETER_PAGE));
+                    sd.setOffset((p-1) * ps);
+                    sd.setCount(ps);
+                } else {
+                    if (request.getParameter(PARAMETER_OFFSET) != null) {
+                        sd.setOffset(new Integer(request.getParameter(PARAMETER_OFFSET)));
+                    }
+                    if (request.getParameter(PARAMETER_COUNT) != null) {
+                        sd.setCount(new Integer(request.getParameter(PARAMETER_COUNT)));
+                    }
+                }
+                if (request.getParameter(PARAMETER_FILTER) != null) {
+                    sd.setFilter(request.getParameter(PARAMETER_FILTER));
+                }
+                if (request.getParameter(PARAMETER_SORTFIELD) != null) {
+                    SortRule sortRule = new SortRule();
+                    sortRule.setFieldName(request.getParameter(PARAMETER_SORTFIELD));
+                    if (request.getParameter(PARAMETER_SORTDIRECTION) != null) {
+                        String d = request.getParameter(PARAMETER_SORTDIRECTION);
+                        if (DIRECTION_ASCENDING.equals(d)) {
+                            sortRule.setDirection(0);
+                        } else if (DIRECTION_DESCENDING.equals(d)) {
+                            sortRule.setDirection(1);
+                        }
+                    }
+                    sd.setSortRule(sortRule);
+                }
                 String text = request.getParameter(PARAMETER_TEXT);
                 Boolean exactMatch = (request.getParameter(PARAMETER_EXACT) != null) ? new Boolean(request.getParameter(PARAMETER_EXACT)) : false;
                 Boolean detailed = (request.getParameter(PARAMETER_DETAILED) != null) ? new Boolean(request.getParameter(PARAMETER_DETAILED)) : false;

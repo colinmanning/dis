@@ -1,5 +1,8 @@
 package com.setantamedia.fulcrum.common;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.*;
 import java.lang.reflect.Array;
 import java.net.URLDecoder;
@@ -7,12 +10,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
+import java.util.*;
 
 public class Utilities {
 
@@ -296,6 +294,28 @@ public class Utilities {
 
    public static String replaceParameter(String source, String parameter, String value) {
       return source.replaceAll("\\$\\{" + parameter + "\\}", value);
+   }
+
+   public static Object readJsonFile(File aFile) throws Exception {
+       Object result = null;
+       String jsonThing = readTextFile(aFile);
+       if (jsonThing != null && jsonThing.length() > 0) {
+           Character ch = jsonThing.charAt(0);
+           switch (ch) {
+               case '{':
+                   result = new JSONObject(jsonThing);
+                   break;
+               case '[':
+                   result = new JSONArray(jsonThing);
+                   break;
+               default:
+                   break;
+           }
+       }
+       return result;
+   }
+
+   public static void writeJsonFile(File aFile, Object jsonThing) throws Exception {
    }
 
    public static String readTextFile(File aFile) {

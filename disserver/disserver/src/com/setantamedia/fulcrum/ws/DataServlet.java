@@ -10,21 +10,20 @@ import com.setantamedia.fulcrum.dam.entities.Folder;
 import com.setantamedia.fulcrum.ws.types.Category;
 import com.setantamedia.fulcrum.ws.types.Record;
 import com.setantamedia.fulcrum.ws.types.User;
+import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Enumeration;
-import java.util.HashMap;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Iterator;
 import java.io.BufferedReader;
-
-import org.apache.log4j.Logger;
-import org.json.JSONObject;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
 
 @SuppressWarnings("serial")
 /**
@@ -52,6 +51,7 @@ public class DataServlet extends BaseServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
+        logger.info("Initialising Data Servlet");
         super.init(config);
     }
 

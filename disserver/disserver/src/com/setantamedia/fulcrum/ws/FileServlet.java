@@ -427,70 +427,75 @@ public class FileServlet extends BaseServlet {
                }
             }
          } else if (operationName.equals(Operations.upload.toString())) {
-            DiskFileItemFactory fileItemFactory = new DiskFileItemFactory();
-            fileItemFactory.setFileCleaningTracker(new FileCleaningTracker());
-            fileItemFactory.setSizeThreshold(MAX_FILE_SIZE);
-            fileItemFactory.setRepository(bigFileFolder.toFile());
-            ServletFileUpload uploadHandler = new ServletFileUpload(fileItemFactory);
-            Path tmpFile = null;
-            List items = uploadHandler.parseRequest(request);
-            Iterator it = items.iterator();
-            while (it.hasNext()) {
-               FileItem item = (FileItem) it.next();
-               if (item.isFormField()) {
-                  if (item.getFieldName().startsWith(FULCRUM_PREFIX)) {
-                     // real parameters start with "fulcrum"
-                     String[] bits = item.getFieldName().split("_");
-                     fields.put(bits[1], item.getString());
-                  } else if (PARAMETER_PROFILE.equals(item.getFieldName())) {
-                     uploadProfile = item.getString("UTF-8");
-                     continue;
-                  } else if (PARAMETER_NAME.equals(item.getFieldName())) {
-                     fileName = item.getString("UTF-8");
-                  }
-               } else {
-                  // the file. setting the name here is not safe if utf
-                  // characters, only do it if none passed in as parameter
-                  if (fileName == null || "".equals(fileName)) {
-                     fileName = item.getName();
-                  }
-                  Path path = tmpFolder.resolve(Utilities.generateGuid());
-                  while (Files.exists(path)) {
-                     // unlikely, but should be fine to wait a bit for a new
-                     // folder
-                     Thread.currentThread().wait(10);
-                     path = tmpFolder.resolve(Utilities.generateGuid());
-                  }
-                  if (!Files.exists(path)) {
-                     Files.createDirectories(path);
-                  }
-                  tmpFile = path.resolve(fileName);
-                  logger.debug("Uploading file to: " + tmpFile);
-                  item.write(tmpFile.toFile());
-               }
-            }
-            try {
-               String rid = dam.manager.uploadFile(dam.connections.get(connectionName), user, tmpFile, fileName, uploadProfile, fields);
-               if (rid != null) {
-                  HashMap<String, String> returnMap = new HashMap<>();
-                  returnMap.put("id", rid);
-                  response.setContentType("application/json;charset=UTF-8");
-                  response.getWriter().write(new JSONObject(returnMap).toString());
-                  status = HttpServletResponse.SC_OK;
-               } else {
-                  logger.error("failed to upload file with name: " + fileName + " to catalog: " + dam.connections.get(connectionName).getDatabase());
-                  status = HttpServletResponse.SC_EXPECTATION_FAILED;
-               }
-            } catch (DamManagerNotImplementedException | IOException e1) {
-               e1.printStackTrace();
-            } finally {
-               // remote the temporary file
-               if (tmpFile != null && Files.exists(tmpFile)) {
-                  Files.delete(tmpFile);
-                  Files.delete(tmpFile.getParent());
-               }
-            }
-         }
+             try {
+                 DiskFileItemFactory fileItemFactory = new DiskFileItemFactory();
+                 fileItemFactory.setFileCleaningTracker(new FileCleaningTracker());
+                 fileItemFactory.setSizeThreshold(MAX_FILE_SIZE);
+                 fileItemFactory.setRepository(bigFileFolder.toFile());
+                 ServletFileUpload uploadHandler = new ServletFileUpload(fileItemFactory);
+                 Path tmpFile = null;
+                 List items = uploadHandler.parseRequest(request);
+                 Iterator it = items.iterator();
+                 while (it.hasNext()) {
+                     FileItem item = (FileItem) it.next();
+                     if (item.isFormField()) {
+                         if (item.getFieldName().startsWith(FULCRUM_PREFIX)) {
+                             // real parameters start with "fulcrum"
+                             String[] bits = item.getFieldName().split("_");
+                             fields.put(bits[1], item.getString());
+                         } else if (PARAMETER_PROFILE.equals(item.getFieldName())) {
+                             uploadProfile = item.getString("UTF-8");
+                             continue;
+                         } else if (PARAMETER_NAME.equals(item.getFieldName())) {
+                             fileName = item.getString("UTF-8");
+                         }
+                     } else {
+                         // the file. setting the name here is not safe if utf
+                         // characters, only do it if none passed in as parameter
+                         if (fileName == null || "".equals(fileName)) {
+                             fileName = item.getName();
+                         }
+                         Path path = tmpFolder.resolve(Utilities.generateGuid());
+                         while (Files.exists(path)) {
+                             // unlikely, but should be fine to wait a bit for a new
+                             // folder
+                             Thread.currentThread().wait(10);
+                             path = tmpFolder.resolve(Utilities.generateGuid());
+                             System.out.println("File upload tmpFolder: " + path.toString());
+                         }
+                         //Files.createDirectories(path);
+                         path.toFile().mkdirs();
+                         tmpFile = path.resolve(fileName);
+                         System.out.println("File upload file full path: " + tmpFile.toString());
+                         logger.debug("Uploading file to: " + tmpFile);
+                         item.write(tmpFile.toFile());
+                     }
+                 }
+                 try {
+                     String rid = dam.manager.uploadFile(dam.connections.get(connectionName), user, tmpFile, fileName, uploadProfile, fields);
+                     if (rid != null) {
+                         HashMap<String, String> returnMap = new HashMap<>();
+                         returnMap.put("id", rid);
+                         response.setContentType("application/json;charset=UTF-8");
+                         response.getWriter().write(new JSONObject(returnMap).toString());
+                         status = HttpServletResponse.SC_OK;
+                     } else {
+                         logger.error("failed to upload file with name: " + fileName + " to catalog: " + dam.connections.get(connectionName).getDatabase());
+                         status = HttpServletResponse.SC_EXPECTATION_FAILED;
+                     }
+                 } catch (DamManagerNotImplementedException | IOException e1) {
+                     e1.printStackTrace();
+                 } finally {
+                     // remove the temporary file
+                     if (tmpFile != null && Files.exists(tmpFile)) {
+                         Files.delete(tmpFile);
+                         Files.delete(tmpFile.getParent());
+                     }
+                 }
+             } catch (Exception e2) {
+                 e2.printStackTrace();
+             }
+          }
       } catch (Exception e) {
          e.printStackTrace();
       } finally {
